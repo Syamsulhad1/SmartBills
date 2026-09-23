@@ -85,93 +85,122 @@ Pendekatan ini sejalan dengan prinsip memadukan kebiasaan lama dan teknologi dig
 Proses pendaftaran akun dirancang agar sangat ringkas dan aman. pengguna hanya diminta memasukkan data dasar seperti nama, email, dan kata sandi.
 Untuk memastikan akun pengguna terlindungi dengan baik tanpa membuat pengguna repot, Smartbill menyediakan berbagai fitur keamanan yang praktis:
 
-Panduan Membuat Sandi Kuat: Saat mengetik kata sandi, indikator kekuatan akan langsung merespons dan mencentang syarat-syarat keamanan secara real-time. kita juga bisa menggunakan tombol tampil/sembunyikan sandi untuk menghindari salah ketik.
+Panduan Membuat Sandi Kuat: Saat mengetik kata sandi, indikator kekuatan akan langsung merespons dan mencentang syarat-syarat keamanan secara real-time. pengguna juga bisa menggunakan tombol tampil/sembunyikan sandi untuk menghindari salah ketik.
 
 Fitur Bantu Sandi: Jika bingung membuat sandi, aplikasi menyediakan saran frasa panjang yang mudah diingat atau tombol pembuat sandi acak otomatis.
+Penyaringan Keamanan: Sistem secara otomatis menolak sandi yang terlalu lemah, seperti kata sandi umum, urutan angka, pola keyboard, atau sandi yang mengandung nama dan surel pengguna.
 
-Penyaringan Keamanan: Sistem secara otomatis menolak sandi yang terlalu lemah, seperti kata sandi umum, urutan angka, pola keyboard, atau sandi yang mengandung nama dan surel kita.
+Enkripsi Tingkat Tinggi: Kata sandi pengguna aman karena disimpan dalam bentuk hash terenkripsi (bcrypt), sehingga tidak ada pihak yang bisa melihat kata sandi asli pengguna.
 
-Enkripsi Tingkat Tinggi: Kata sandi kita aman karena disimpan dalam bentuk hash terenkripsi (bcrypt), sehingga tidak ada pihak yang bisa melihat kata sandi asli kita.
-
-Fitur Masuk Tambahan: Pada perangkat seluler, kita bisa mengunci aplikasi menggunakan biometrik (sidik jari/wajah) atau PIN. Jika lupa sandi, tersedia juga tautan pemulihan yang dikirimkan melalui surel.
+Fitur Masuk Tambahan: Pada perangkat seluler, pengguna bisa mengunci aplikasi menggunakan biometrik (sidik jari/wajah) atau PIN. Jika lupa sandi, tersedia juga tautan pemulihan yang dikirimkan melalui surel.
 
 Rancangan Standar Keamanan Sistem
 Panjang Minimal Sandi: Minimal 12 karakter.
 
 Pembatasan Login: Akun akan dibatasi sementara jika terjadi 5 kali kesalahan berturut-turut saat masuk.
-
-Masa Berlaku Sesi (JWT): Token akses aktif selama 15 menit demi keamanan sesi kita.
-
+Masa Berlaku Sesi (JWT): Token akses aktif selama 15 menit demi keamanan sesi pengguna.
 Batas Waktu Pemulihan: Tautan lupa kata sandi hanya berlaku selama 30 menit.
+
 ### 3.3 Fitur pencarian dan aset eksternal
 
-**Desain pencarian.** Smartbill menyediakan satu bilah pencarian pada riwayat transaksi dan galeri bukti. Rancangannya mengadopsi prinsip pencarian efektif dari Modul 3:
+1. Mencari Data Menjadi Lebih Mudah dan Cepat
+Smartbill menyediakan satu kotak pencarian praktis untuk membantu pengguna menemukan riwayat transaksi atau foto bukti dengan cepat. Sistem ini dirancang agar terasa natural seperti:
 
-- pencarian lintas kolom sekaligus: nama toko, nama barang, kategori, nominal, dan catatan;
-- filter cepat berupa *chip* untuk rentang tanggal, jenis transaksi (pemasukan atau pengeluaran), dan kategori, sebagai padanan alat penyaring waktu pada mesin pencari;
-- dukungan frasa persis dengan tanda kutip dan penyaring berbentuk kategori:F&` bagi pengguna mahir;
-- toleransi salah ketik menggunakan pencocokan trigram PostgreSQL, serta penundaan (*debounce*) agar server tidak terbebani;
-- sorotan kata yang cocok pada hasil, riwayat pencarian terakhir, dan pesan "tidak ditemukan" yang menyarankan longgarkan filter;
-- setiap kueri dibatasi pada data milik pengguna yang sedang login, sehingga pencarian tidak dapat menyingkap data akun lain.
+Cari Sekaligus: Cukup ketik satu kata kunci, dan sistem secara otomatis akan mencarinya di semua tempat sekaligus—baik itu nama toko, nama barang, kategori, jumlah uang, maupun catatan.
 
-**Aset eksternal dan lisensinya.** Daftar berikut merujuk pada rancangan teknologi proyek dan perlu diverifikasi ulang terhadap `package.json` serta berkas lisensi pada versi yang benar-benar dipakai.
+Filter Instan: Pengguna bisa menggunakan tombol pintas (filter chips) di bawah kotak pencarian untuk menyaring data berdasarkan tanggal, jenis transaksi (pemasukan atau pengeluaran), atau kategori tertentu.
 
-| Aset                                         | Fungsi                             | Status lisensi                    | Kewajiban 
-| React, React Native, Expo                    | Antarmuka web dan mobile           | *Open source* (MIT)               | Menyertakan pemberitahuan hak cipta dan teks 
-|                                              |                                    |                                   | lisensi 
-| Express, Multer, jsonwebtoken, bcrypt        | Server, unggah berkas, autentikasi | *Open source* (MIT)               | Sama seperti di atas 
-| PostgreSQL                                   | Basis data                         | *Open source*                     |
-|                                              |                                    |(lisensi PostgreSQL yang permisif) | Menyertakan pemberitahuan hak cipta 
-| Chart.js atau Recharts                       | Grafik dashboard                   | *Open source* (MIT)               | Menyertakan pemberitahuan hak cipta
-| Google Cloud Vision API                      | OCR                                | Layanan komersial berpemilik      | Mematuhi syarat layanan Google; kunci API
-|                                              |                                    |                                   | dirahasiakan 
-| Google Gemini API                            | Parsing dan kategorisasi           | Layanan komersial berpemilik      | Mematuhi syarat layanan dan kebijakan
-|                                              |                                    |                                   | penggunaan yang berlaku 
-| Ikon (misalnya Lucide atau Material Symbols) | Antarmuka                          | *Open source* (ISC atau Apache)   | Mencantumkan lisensi sesuai ketentuan paket
-| Logo dan ilustrasi aplikasi                  | Identitas visual                   | Karya orisinal tim                | Tidak ada; bila memakai gambar luar, hanya
-|                                              |                                    |                                   | dari sumber CC0 atau domain publik 
+Pintasan untuk Pengguna Mahir: Bagi yang sudah terbiasa, pencarian bisa dibuat lebih spesifik menggunakan tanda kutip untuk frasa yang sama persis (misalnya "kopi susu") atau mengetik perintah khusus seperti kategori:F&B.
 
-Seluruh atribusi dikumpulkan pada halaman "Tentang dan Lisensi" di aplikasi serta berkas `THIRD_PARTY_LICENSES` di repositori. Khusus fitur pelacak harga komoditas yang mengambil data dari platform UMKM, pengambilan data (*scraping*) berpotensi melanggar ketentuan layanan dan hak atas basis data pihak lain. Karena itu rancangannya mengutamakan API resmi atau kerja sama dengan mitra, bukan penyalinan halaman secara sepihak.
+Tahan Salah Ketik: Pengguna tidak perlu khawatir jika ada salah eja. Sistem memiliki teknologi pintar yang tetap bisa mengenali kata yang dimaksud. Proses pencarian juga diatur agar tetap ringan bagi server.
+
+Tampilan yang Membantu: Kata kunci yang dicari akan diberi warna penyorot pada hasil pencarian, lengkap dengan riwayat pencarian terakhir dan saran jika data yang dicari tidak ditemukan.
+
+Aman dan Privasi Terjaga: Setiap kali melakukan pencarian, sistem hanya akan menampilkan data milik akun yang sedang masuk saja, sehingga data pengguna lain tidak akan bisa dilihat.
+
+2. Transparansi Komponen dan Lisensi Aplikasi
+Dalam mengembangkan Smartbill, seluruh teknologi dan bahan pendukung digunakan secara jujur dan transparan. Daftarnya bisa dilihat pada halaman "Tentang dan Lisensi" di dalam aplikasi maupun pada berkas seperti:
+
+Teknologi Terbuka (Open Source): Sebagian besar komponen utama aplikasi—seperti tampilan layar (React, Expo), sistem server (Express, Multer, JWT, bcrypt), basis data (PostgreSQL), hingga grafik dan ikon—menggunakan pustaka gratis berlisensi bebas. Aturannya cukup dengan mencantumkan pemberitahuan hak cipta pengembang aslinya.
+
+Layanan Pendukung Pihak Ketiga: Smartbill juga menggunakan layanan profesional berbayar, seperti Google Cloud Vision API untuk membaca teks pada struk dan Google Gemini API untuk merapikan serta mengkategorikan data. Penggunaannya dijamin aman dan mematuhi aturan resmi yang berlaku.
+
+Desain dan Identitas: Logo serta ilustrasi dibuat sendiri oleh tim. Jika ada gambar tambahan dari luar, hanya diambil dari sumber yang bebas hak cipta (CC0 atau domain publik).
+
+Aturan Pengambilan Data Harga: Khusus untuk fitur pemantau harga komoditas, Smartbill menghindari cara-cara ilegal seperti menyalin data otomatis dari situs lain (scraping). Aplikasi ini mengutamakan penggunaan jalur resmi atau bekerja sama langsung dengan mitra demi menjaga etika dan hukum yang berlaku.
 
 ### 3.4 Etika digital dan AI yang bertanggung jawab
 
-**Interaksi sosial.** Versi saat ini tidak memiliki fitur sosial antarpengguna, sehingga risiko perundungan dan *trolling* rendah. Titik sentuh yang tersisa adalah rekomendasi toko atau UMKM pada pelacak harga. Pencegahannya: hanya mitra terverifikasi yang tampil, disediakan tombol laporkan konten yang keliru atau menyesatkan, dan tautan keluar diberi peringatan bahwa pengguna meninggalkan Smartcill. Apabila fitur bersama (misalnya anggaran keluarga atau kolom komentar) ditambahkan kelak, aturan netiket dipasang sejak awal: pedoman komunitas yang singkat, tombol blokir dan laporkan, penyaringan kata kasar, serta pengaturan privasi bawaan yang paling tertutup.
+**Aspek Sosial dan Etika Kecerdasan Buatan (AI) di Smartbill**
+1. Keamanan dan Kenyamanan Interaksi Sosial
+Pada versi saat ini, Smartbill sengaja tidak menyediakan fitur interaksi antar-pengguna agar aplikasi tetap fokus pada pembukuan pribadi dan bebas dari risiko gangguan seperti perundungan. Satu-satunya titik interaksi luar adalah rekomendasi toko atau UMKM pada fitur pelacak harga. Untuk menjaga keamanan, Smartbill menerapkan langkah-langkah pencegahan sebagai berikut:
 
-**AI yang etis dan bertanggung jawab.** Rancangan mengikuti prinsip bahwa hasil AI dipengaruhi data dan desain, sehingga perlu kendali manusia dan transparansi:
+Mitra Terverifikasi: Hanya toko atau pelaku UMKM terverifikasi yang akan ditampilkan.
 
-| Prinsip               | Penerapan 
-| Transparansi          | Setiap hasil ekstraksi diberi label "dihasilkan AI, mohon periksa" 
-| Kendali manusia       | Pengguna meninjau dan dapat mengedit sebelum transaksi dikonfirmasi; ada fitur koreksi dan reset 
-| Akurasi dan kejujuran | Bila keyakinan rendah atau teks tidak terbaca, sistem meminta foto ulang atau input manual, bukan menebak 
-| Keadilan              | Kategori memiliki opsi "Lainnya" agar struk non-standar tidak dipaksa ke kategori keliru 
-| Keamanan masukan      | Teks hasil OCR diperlakukan sebagai data, bukan perintah; keluaran LLM divalidasi terhadap skema JSON dan batas nilai yang wajar 
-| Privasi               | Pengguna diminta persetujuan sebelum gambar dikirim ke layanan pihak ketiga, dan konfigurasi API dipilih agar data pengguna tidak dipakai 
-|                       | melatih model 
-| Akuntabilitas         | Riwayat perubahan transaksi dicatat sehingga koreksi dapat ditelusuri 
+Tombol Pelaporan: Tersedia tombol khusus bagi pengguna untuk melaporkan informasi atau konten yang keliru dan menyesatkan.
+
+Peringatan Tautan Keluar: Pengguna akan selalu mendapat peringatan saat akan mengklik tautan yang membawa mereka keluar dari aplikasi Smartbill.
+
+Rancangan Masa Depan: Jika kelak fitur bersama (seperti anggaran keluarga atau kolom komunitas) ditambahkan, aturan perilaku (netiket) sudah disiapkan sejak awal, meliputi pedoman komunitas yang ringkas, tombol blokir dan lapor, sistem penyaringan kata kasar, serta pengaturan privasi yang secara otomatis diatur paling ketat.
+
+2. Etika dan Tanggung Jawab Penggunaan AI
+Smartbill menyadari bahwa hasil dari kecerdasan buatan sangat bergantung pada data dan cara perancangannya. Oleh karena itu, aplikasi menempatkan manusia sebagai pengendali utama dengan prinsip-prinsip keterbukaan sebagai berikut:
+
+Transparansi: Setiap data hasil bacaan AI selalu diberi keterangan yang jelas agar pengguna tahu bahwa data tersebut perlu diperiksa kembali.
+
+Kendali di Tangan Pengguna: Sebelum transaksi disimpan, pengguna wajib meninjau dan berhak mengedit data tersebut. Tersedia juga tombol koreksi dan reset.
+
+Akurat dan Jujur: Jika sistem AI ragu atau teks pada foto tidak terbaca jelas, aplikasi tidak akan menebak-nebak, melainkan meminta pengguna memotret ulang atau mengisi data secara manual.
+
+Keadilan Kategori: Untuk struk belanja yang tidak biasa, disediakan pilihan kategori "Lainnya" agar sistem tidak memaksakan pengelompokan yang salah.
+
+Keamanan Data Masukan: Teks hasil pemindaian diperlakukan murni sebagai data informasi, bukan instruksi perintah. Hasil olahan AI juga selalu divalidasi keamanannya terhadap aturan format dan batas nilai yang wajar.
+
+Menjaga Privasi: Pengguna akan selalu dimintai izin terlebih dahulu sebelum gambar struk dikirim ke pihak ketiga. Selain itu, sistem diatur agar data pengguna tidak digunakan untuk melatih kecerdasan buatan pihak luar.
+
+Akuntabilitas (Jejak Riwayat): Setiap perubahan atau koreksi pada data transaksi akan selalu dicatat oleh sistem, sehingga riwayat perbaikannya dapat ditelusuri kembali kapan saja.
 
 ### 3.5 Data pribadi (PII), perlindungan, dan pencegahan penipuan
 
-| Data                          | Tujuan                   | Tingkat sensitivitas       | Perlindungan 
-| Nama dan surel                | Akun dan pemulihan sandi | Sedang                     | Validasi surel, akses hanya lewat API terautentikasi 
-| Kata sandi                    | Autentikasi              | Tinggi                     | Hash bergaram, tidak pernah disimpan atau dicatat sebagai teks asli 
-| Saldo dan riwayat transaksi   | Fungsi inti              | Tinggi                     |Transaksi atomik, pengecekan 
-|                               |                          |                            |kepemilikan data pada setiap permintaan 
-| Foto struk dan bukti transfer | Ekstraksi dan audit      | Tinggi (dapat memuat nama, |
-|                               |                          | nomor rekening,            |
-|                               |                          | atau nomor kartu)          | Penyimpanan privat terenkripsi, akses lewat tautan bertanda tangan berumur 
-|                               |                          |                            | pendek 
-| Token sesi                    | Otorisasi                | Tinggi                     | JWT berumur pendek, dikirim hanya lewat HTTPS 
+**Perlindungan Data dan Keamanan Pengguna di Smartbill**
+1. Jenis Data dan Tingkat Perlindungan
+Smartbill mengelola berbagai jenis data pribadi dan keuangan dengan tingkat pengamanan yang disesuaikan berdasarkan tingkat sensitivitasnya seperti:
 
-**Perlindungan data.**
+Nama dan Surel: Memiliki tingkat sensitivitas Sedang dan digunakan untuk pengelolaan akun serta pemulihan sandi. Sistem melindunginya melalui validasi surel dan akses yang hanya diizinkan lewat API terautentikasi.
 
-- Seluruh komunikasi memakai HTTPS, dan basis data hanya menerima kueri berparameter untuk mencegah injeksi SQL.
-- Prinsip minimalisasi: aplikasi tidak meminta NIK, PIN, kode OTP, atau kredensial perbankan, dan nomor rekening atau kartu pada hasil ekstraksi disamarkan sebelum disimpan.
-- Teks mentah OCR tidak disimpan lebih lama dari yang dibutuhkan untuk proses verifikasi.
-- Kunci API dan rahasia berada pada variabel lingkungan server, tidak pada kode sumber maupun aplikasi klien.
-- Log sistem tidak memuat PII.
-- Pengguna dapat mengekspor dan menghapus akun beserta seluruh fotonya, selaras dengan semangat Undang-Undang Pelindungan Data Pribadi.
+Kata Sandi: Masuk dalam kategori sensitivitas Tinggi khusus untuk autentikasi. Sandi diamankan menggunakan bentuk hash bergaram (salted hash) dan tidak pernah disimpan atau dicatat sebagai teks asli.
 
-**Meminimalkan risiko penipuan siber.** Smartbill hanya mencatat transaksi dan tidak memindahkan uang, sehingga permukaan serangan finansialnya sempit. Langkah tambahan: pengguna mendapat edukasi singkat di dalam aplikasi tentang *phishing* dan bukti transfer palsu, surel resmi tidak pernah meminta sandi atau menyertakan tautan masuk, tautan eksternal diberi peringatan, mitra UMKM harus terverifikasi, percobaan login yang mencurigakan dibatasi, dan pengguna dianjurkan mengaktifkan autentikasi dua faktor. Catatan penting bagi pengguna: sistem hanya membaca bukti transfer sebagai data, bukan sebagai bukti bahwa dana benar-benar diterima.
+Saldo dan Riwayat Transaksi: Bersifat Tinggi sebagai fungsi inti aplikasi. Dilindungi melalui transaksi atomik serta pengecekan kepemilikan data yang ketat pada setiap permintaan (request).
+
+Foto Struk dan Bukti Transfer: Memiliki sensitivitas Tinggi karena berpotensi memuat informasi pribadi seperti nama, nomor rekening, atau nomor kartu. Data ini disimpan dalam ruang privat yang terenkripsi, dan aksesnya menggunakan tautan bertanda tangan (signed URL) yang berumur pendek.
+
+Token Sesi: Dinilai berhak atas tingkat keamanan Tinggi untuk keperluan otorisasi. Token menggunakan JWT berumur pendek dan hanya dikirimkan melalui jalur aman HTTPS.
+
+2. Standar Perlindungan dan Privasi Data
+Smartbill menerapkan berbagai langkah pengamanan teknis untuk menjaga kerahasiaan informasi pengguna:
+
+Komunikasi dan Keamanan Server: Seluruh komunikasi wajib menggunakan HTTPS, dan basis data hanya memproses kueri berparameter guna mencegah celah serangan injeksi SQL.
+
+Prinsip Minimalisasi Data: Aplikasi tidak meminta data pribadi yang berisiko tinggi seperti NIK, PIN, kode OTP, atau kredensial perbankan. Jika terdapat nomor rekening atau kartu pada hasil ekstraksi, data tersebut akan disamarkan terlebih dahulu sebelum disimpan.
+
+Pemusnahan Data Mentah: Teks mentah hasil pemindaian OCR hanya disimpan seperlunya selama proses verifikasi berlangsung dan tidak disimpan selamanya.
+
+Kerahasiaan Sistem: Kunci API dan data rahasia disimpan aman di dalam variabel lingkungan server, sehingga tersembunyi dari kode sumber maupun perangkat klien.
+
+Penyaringan Log Sistem: Catatan aktivitas server (log sistem) dipastikan bersih dan tidak memuat informasi identitas pribadi (PII).
+
+Hak Pengguna (UU PDP): Pengguna memiliki kendali penuh untuk mengekspor atau menghapus akun beserta seluruh foto dan datanya kapan saja, selaras dengan semangat Undang-Undang Pelindungan Data Pribadi.
+
+3. Langkah-Langkah Mencegah Risiko Penipuan Siber
+Karena Smartbill hanya berfungsi untuk mencatat keuangan tanpa memindahkan atau mentransfer uang secara langsung, risiko serangan finansial pada aplikasi ini tergolong kecil. Meskipun demikian, berbagai langkah pencegahan tambahan tetap diterapkan:
+
+Edukasi Pengguna: Pengguna dibekali edukasi singkat di dalam aplikasi mengenai ancaman penipuan seperti phishing dan modus bukti transfer palsu.
+
+Komunikasi Resmi yang Aman: Surel resmi dari Smartbill tidak akan pernah meminta kata sandi pengguna atau menyertakan tautan langsung untuk masuk ke akun.
+
+Peringatan Keamanan Eksternal: Setiap tautan keluar aplikasi akan selalu disertai peringatan bagi pengguna.
+
+Verifikasi Mitra dan Pembatasan Akses: Mitra UMKM harus melalui proses verifikasi terlebih dahulu. Selain itu, percobaan login yang mencurigakan akan dibatasi secara otomatis, dan pengguna dianjurkan mengaktifkan autentikasi dua faktor.
 
 ### 3.6 Komunikasi masalah teknis dan pesan error yang ramah
 
