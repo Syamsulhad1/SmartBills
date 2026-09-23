@@ -1,5 +1,3 @@
-# LAPORAN SMART DIGITAL PRODUCT: [Nama Produk]
-
 ## 1. Ringkasan Eksekutif (Executive Summary)
 *   **Masalah:**  Pengguna kesulitan mencatat pengeluaran dan pemasukan harian secara konsisten serta memantau saldo terkini secara akurat karena proses pencatatan    manual yang memakan waktu.
 
@@ -74,6 +72,23 @@
     Audit & Visualisasi Rekapitulasi Keuangan (Smart Analytics Dashboard):
     Deskripsi: Dashboard berbasis web yang menyajikan analisis rekapitulasi keuangan mingguan dan bulanan. Dilengkapi dengan agregasi data visual (grafik alokasi kategori & arus kas) serta galeri audit foto bukti transaksi yang terhubung langsung dengan rincian item belanjaan.
     Nilai Smart: Memberikan pemahaman visual (financial insight) kepada pengguna mengenai pola pengeluaran terbesar mereka secara otomatis tanpa perlu melakukan rekap manual di spreadsheet.
+
+###  Fitur Tambahan (Additional Features)
+
+#### 1. Real-Time Commodity Price Tracker (Integrasi UMKM)
+* **Fungsi:** Menampilkan informasi perbandingan dan tren harga barang/komoditas lokal secara *real-time* dengan mengekstraksi (*scraping*) data secara otomatis dari berbagai platform e-commerce/UMKM mitra.
+* **Input Data:** Teks nama barang hasil ekstraksi AI/OCR dan data scraping dari API/Web platform UMKM eksternal.
+* **Output/Aksi:** Visualisasi estimasi kisaran harga pasar terkini, rekomendasi toko/UMKM dengan harga bersaing, serta pembaharuan ke tabel `master_commodity_prices`.
+
+#### 2. Manual Transaction Entry & Data Correction
+* **Fungsi:** Memberikan fleksibilitas bagi pengguna untuk mencatat transaksi tunai/tanpa bukti fisik secara manual, serta mengedit atau mereset hasil ekstraksi AI jika terdapat kesalahan parsing.
+* **Input Data:** Form entri manual (nominal, jenis transaksi, kategori, dan deskripsi).
+* **Output/Aksi:** Penyimpanan entri transaksi baru atau pembaharuan record data pada database PostgreSQL.
+
+#### 3. User Authentication & Profile Management
+* **Fungsi:** Mengamankan akses aplikasi dan data finansial personal pengguna.
+* **Input Data:** Kredensial akun (email dan password).
+* **Output/Aksi:** Token enkripsi JWT (*JSON Web Token*) untuk autentikasi sesi login dan pengelolaan profil saldo awal pengguna.
 
 ### [Nama Fitur 1 - AI Multimodal Receipt & Transfer Scanner]
 *   **Fungsi:**Memproses dan mengekstrak data keuangan secara otomatis dari dokumen fisik atau digital 
