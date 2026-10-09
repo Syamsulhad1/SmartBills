@@ -24,6 +24,27 @@ const validateRegisterInput = ({ name, email, password }) => {
     return errors;
 };
 
+const validateLoginInput = ({ email, password }) => {
+    const errors = [];
+
+    if (!email || typeof email !== "string") {
+        errors.push("Email is required");
+    } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email)) {
+            errors.push("Invalid email format");
+        }
+    }
+
+    if (!password || typeof password !== "string") {
+        errors.push("Password is required");
+    }
+
+    return errors;
+};
+
 module.exports = {
-    validateRegisterInput
+    validateRegisterInput,
+    validateLoginInput
 };

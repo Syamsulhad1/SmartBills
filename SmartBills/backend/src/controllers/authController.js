@@ -1,5 +1,12 @@
-const { registerUser } = require("../services/authService");
-const { validateRegisterInput } = require("../validators/authValidator");
+const {
+    registerUser,
+    loginUser
+} = require("../services/authService");
+
+const {
+    validateRegisterInput,
+    validateLoginInput
+} = require("../validators/authValidator");
 
 
 const register = async (req, res, next) => {
@@ -46,6 +53,44 @@ const register = async (req, res, next) => {
 };
 
 
+const login = async (req, res, next) => {
+    try {
+        const {
+            email,
+            password
+        } = req.body;
+
+        const errors = validateLoginInput({
+            email,
+            password
+        });
+
+        if (errors.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Validation failed",
+                errors
+            });
+        }
+
+        const authData = await loginUser({
+            email,
+            password
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Login successful",
+            data: authData
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 module.exports = {
-    register
+    register,
+    login
 };
