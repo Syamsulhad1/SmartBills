@@ -1,6 +1,7 @@
 const { Pool } = require("pg");
 
 const {
+    DATABASE_URL,
     DB_HOST,
     DB_PORT,
     DB_NAME,
@@ -9,11 +10,15 @@ const {
 } = require("./environment");
 
 const pool = new Pool({
-    host: DB_HOST,
-    port: DB_PORT,
-    database: DB_NAME,
-    user: DB_USER,
-    password: DB_PASSWORD,
+    ...(DATABASE_URL
+        ? { connectionString: DATABASE_URL }
+        : {
+            host: DB_HOST,
+            port: DB_PORT,
+            database: DB_NAME,
+            user: DB_USER,
+            password: DB_PASSWORD
+        }),
 
     max: 10,
     idleTimeoutMillis: 30000,
