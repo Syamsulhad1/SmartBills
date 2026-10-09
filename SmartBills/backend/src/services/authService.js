@@ -8,7 +8,8 @@ const {
 
 const {
     JWT_SECRET,
-    JWT_EXPIRES_IN
+    JWT_EXPIRES_IN,
+    BCRYPT_SALT_ROUNDS
 } = require("../config/environment");
 
 
@@ -56,7 +57,7 @@ const registerUser = async ({ name, email, password }) => {
     }
 
     // Hash password
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     // Simpan user ke database
     const user = await createUser({
