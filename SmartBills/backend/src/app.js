@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const pool = require("./config/database");
+const { CORS_ORIGIN } = require("./config/environment");
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -19,7 +20,7 @@ const app = express();
 // Global Middleware
 // ==============================
 
-app.use(cors());
+app.use(cors({ origin: CORS_ORIGIN }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
