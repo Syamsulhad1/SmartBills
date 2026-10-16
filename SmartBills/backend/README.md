@@ -71,6 +71,17 @@ Endpoint `GET /api/users/me` tersedia untuk pengguna yang sudah login. Endpoint
 `GET /api/users` hanya tersedia untuk role `admin` dan tidak mengembalikan saldo
 pengguna lain.
 
+## Model Transaksi
+
+Jalankan migration transaksi sebelum memakai model `transactions`:
+
+```bash
+npm run migrate:transactions
+```
+
+Kolom `source` menerima `MANUAL`, `OCR`, atau `AI`. Query detail transaksi selalu
+dibatasi dengan `user_id` agar transaksi pengguna lain tidak dapat diakses.
+
 ## Langkah implementasi berikutnya
 
 1. Implementasikan `src/config/database.js` dan `src/config/environment.js`.
