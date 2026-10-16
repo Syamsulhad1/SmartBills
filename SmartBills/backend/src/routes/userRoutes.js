@@ -1,14 +1,19 @@
 const express = require("express");
-const { protect } = require("../middleware/authMiddleware");
+const {
+    protect,
+    authorize
+} = require("../middleware/authMiddleware");
+
+const {
+    getMyProfile,
+    getAllUsers
+} = require("../controllers/userController");
 
 const router = express.Router();
 
 router.use(protect);
 
-router.get("/", (req, res) => {
-    res.json({
-        message: "User API"
-    });
-});
+router.get("/me", getMyProfile);
+router.get("/", authorize("admin"), getAllUsers);
 
 module.exports = router;

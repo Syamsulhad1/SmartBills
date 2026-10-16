@@ -53,6 +53,24 @@ npm start              # mode produksi
 | `multer` | unggah file (nota/struk) |
 | `cors`, `dotenv` | CORS & environment |
 
+## Role Pengguna
+
+Setelah database tersedia, tambahkan role dengan migration berikut:
+
+```bash
+npm run migrate:roles
+```
+
+Setiap akun baru memiliki role `user`. Role `admin` hanya diberikan melalui perintah lokal:
+
+```bash
+npm run set-user-role -- user@example.com admin
+```
+
+Endpoint `GET /api/users/me` tersedia untuk pengguna yang sudah login. Endpoint
+`GET /api/users` hanya tersedia untuk role `admin` dan tidak mengembalikan saldo
+pengguna lain.
+
 ## Langkah implementasi berikutnya
 
 1. Implementasikan `src/config/database.js` dan `src/config/environment.js`.

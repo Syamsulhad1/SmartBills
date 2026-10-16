@@ -37,6 +37,7 @@ const toSafeUser = (user) => ({
     user_id: user.user_id,
     name: user.name,
     email: user.email,
+    role: user.role,
     current_balance: user.current_balance,
     created_at: user.created_at
 });

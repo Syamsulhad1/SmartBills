@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "migrate:roles": "node src/scripts/migrateUserRoles.js",
+    "set-user-role": "node src/scripts/setUserRole.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

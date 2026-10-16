@@ -21,6 +21,7 @@ const createUser = async ({ name, email, passwordHash }) => {
             user_id,
             name,
             email,
+            role,
             current_balance,
             created_at;
     `;
@@ -55,6 +56,7 @@ const findUserByEmail = async (email) => {
             name,
             email,
             password_hash,
+            role,
             current_balance,
             created_at
         FROM users
@@ -79,6 +81,7 @@ const findUserById = async (userId) => {
             user_id,
             name,
             email,
+            role,
             current_balance,
             created_at
         FROM users
@@ -91,8 +94,47 @@ const findUserById = async (userId) => {
 };
 
 
+const findAllUsers = async () => {
+    const query = `
+        SELECT
+            user_id,
+            name,
+            email,
+            role,
+            created_at
+        FROM users
+        ORDER BY user_id ASC;
+    `;
+
+    const result = await pool.query(query);
+
+    return result.rows;
+};
+
+
+const updateUserRoleByEmail = async (email, role) => {
+    const query = `
+        UPDATE users
+        SET role = $2
+        WHERE email = $1
+        RETURNING
+            user_id,
+            name,
+            email,
+            role,
+            created_at;
+    `;
+
+    const result = await pool.query(query, [email, role]);
+
+    return result.rows[0];
+};
+
+
 module.exports = {
     createUser,
     findUserByEmail,
-    findUserById
+    findUserById,
+    findAllUsers,
+    updateUserRoleByEmail
 };
