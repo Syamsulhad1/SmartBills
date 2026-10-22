@@ -42,6 +42,13 @@ npm run dev            # nodemon
 npm start              # mode produksi
 ```
 
+Swagger UI tersedia di `http://localhost:5000/api-docs` setelah server berjalan.
+Gunakan `POST /api/auth/register` untuk membuat akun, lalu `POST /api/auth/login`
+untuk mendapatkan token. Klik **Authorize** dan masukkan token JWT sebelum
+mencoba endpoint transaksi. Pada `POST /api/transactions`, pilih
+`multipart/form-data`, isi `type` dan `amount`, lalu pilih file pada field
+`receipt` (opsional).
+
 ## Ketergantungan utama
 
 | Paket | Fungsi |
@@ -82,9 +89,60 @@ npm run migrate:transactions
 Kolom `source` menerima `MANUAL`, `OCR`, atau `AI`. Query detail transaksi selalu
 dibatasi dengan `user_id` agar transaksi pengguna lain tidak dapat diakses.
 
+## Setup Database Dan Bukti Transaksi
+
+Untuk membuat skema lengkap dari database kosong, termasuk foreign key, indeks,
+dan kategori awal, jalankan:
+
+```bash
+npm run db:setup
+```
+
+Bukti transaksi disimpan secara privat di `uploads/receipts`. Database menyimpan
+nama file acak di `transactions.image_url`; folder ini tidak dipublikasikan
+sebagai static file. Upload hanya menerima JPEG, PNG, dan WebP hingga 5 MB.
+Semua endpoint transaksi memerlukan header Authorization dengan JWT login.
+
+### Upload Transaksi Dan Bukti
+
+`POST /api/transactions` menerima `multipart/form-data`. Field `receipt` bersifat
+opsional; `type` dan `amount` wajib. Field opsional: `categoryId`, `merchantName`,
+`notes`, `transactionDate`, dan `items` (JSON array). Setiap item berisi
+`itemName`, `quantity`, `unitPrice`, dan `totalPrice`; `totalPrice` boleh
+dihitung dari `quantity * unitPrice`.
+
+Contoh:
+
+```bash
+curl -X POST http://localhost:5000/api/transactions \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -F "type=EXPENSE" \
+  -F "amount=45000" \
+  -F "merchantName=Warung" \
+  -F 'items=[{"itemName":"Beras","quantity":1,"unitPrice":45000}]' \
+  -F "receipt=@./struk.jpg"
+```
+
+Transaksi, item, dan referensi file disimpan secara atomik di PostgreSQL.
+Jika validasi atau penyimpanan database gagal, file unggahan dibersihkan.
+
+### Galeri Dan Akses Bukti
+
+- `GET /api/transactions?limit=50&offset=0` mengembalikan transaksi milik
+  pengguna yang login dan `receipt_url` untuk transaksi dengan bukti.
+- `GET /api/transactions/:transactionId` mengembalikan detail transaksi beserta
+  item.
+- `GET /api/transactions/:transactionId/receipt` mengirim gambar privat setelah
+  memverifikasi JWT dan kepemilikan transaksi.
+
+Galeri web/mobile harus meminta `receipt_url` dengan token JWT (misalnya memakai
+`fetch` lalu membuat object URL dari respons gambar). Path filesystem dan file
+bukti tidak tersedia sebagai URL publik. Endpoint ini tidak memperbarui saldo
+pengguna dan belum menjalankan OCR/AI.
+
 ## Langkah implementasi berikutnya
 
-1. Implementasikan `src/config/database.js` dan `src/config/environment.js`.
-2. Buat skema tabel (users, categories, transactions, transaction_items, commodity_prices).
-3. Implementasikan `authService` + `authMiddleware`, lalu pasang `authRoutes`.
-4. Lanjutkan ke transaksi, kategori, analitik, harga, dan AI/OCR.
+1. Hubungkan layar upload dan galeri frontend ke endpoint transaksi di atas.
+2. Tambahkan pengujian integrasi menggunakan PostgreSQL untuk upload, akses
+   lintas pengguna, dan kegagalan penyimpanan.
+3. Implementasikan pembaruan saldo serta integrasi OCR/AI secara transaksional.

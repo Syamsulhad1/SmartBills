@@ -27,6 +27,7 @@ const config = {
 
     CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
     CORS_ORIGIN: process.env.CORS_ORIGIN || process.env.CLIENT_URL || "http://localhost:3000",
+    UPLOAD_DIR: process.env.UPLOAD_DIR || "uploads",
 
     AI_API_KEY: process.env.AI_API_KEY,
     AI_MODEL: process.env.AI_MODEL,

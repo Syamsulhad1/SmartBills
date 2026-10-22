@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
 const pool = require("./config/database");
 const { CORS_ORIGIN } = require("./config/environment");
+const { ensurePrivateReceiptStorage } = require("./config/storage");
+const openApiSpec = require("./config/openApiSpec");
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -15,6 +18,7 @@ const errorMiddleware = require("./middleware/errorMiddleware");
 
 const app = express();
 
+ensurePrivateReceiptStorage();
 
 // ==============================
 // Global Middleware
@@ -24,6 +28,8 @@ app.use(cors({ origin: CORS_ORIGIN }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 
 // ==============================

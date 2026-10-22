@@ -96,8 +96,18 @@ const findTransactionByIdForUser = async (transactionId, userId) => {
     return result.rows[0];
 };
 
+const findCategoryById = async (categoryId, db) => {
+    const result = await db.query(
+        "SELECT category_id, type FROM categories WHERE category_id = $1;",
+        [categoryId]
+    );
+
+    return result.rows[0];
+};
+
 module.exports = {
     createTransaction,
     findTransactionsByUserId,
-    findTransactionByIdForUser
+    findTransactionByIdForUser,
+    findCategoryById
 };
