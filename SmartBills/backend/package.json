@@ -9,6 +9,7 @@
     "db:setup": "node src/scripts/setupDatabase.js",
     "migrate:roles": "node src/scripts/migrateUserRoles.js",
     "migrate:transactions": "node src/scripts/migrateTransactions.js",
+    "migrate:initial-balance": "node src/scripts/migrateInitialBalance.js",
     "set-user-role": "node src/scripts/setUserRole.js",
     "test": "node --test"
   },

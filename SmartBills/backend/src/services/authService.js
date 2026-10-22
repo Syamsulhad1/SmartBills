@@ -1,3 +1,4 @@
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -5,6 +6,8 @@ const {
     createUser,
     findUserByEmail
 } = require("../models/userModel");
+
+const { toUserResponse } = require("../utils/userResponse");
 
 const {
     JWT_SECRET,
@@ -33,14 +36,7 @@ const createAuthToken = (user) => {
 };
 
 
-const toSafeUser = (user) => ({
-    user_id: user.user_id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    current_balance: user.current_balance,
-    created_at: user.created_at
-});
+const toSafeUser = (user) => toUserResponse(user);
 
 
 const registerUser = async ({ name, email, password }) => {
@@ -58,7 +54,10 @@ const registerUser = async ({ name, email, password }) => {
     }
 
     // Hash password
-    const passwordHash = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(
+        password,
+        BCRYPT_SALT_ROUNDS
+    );
 
     // Simpan user ke database
     const user = await createUser({
@@ -82,7 +81,10 @@ const loginUser = async ({ email, password }) => {
         throw error;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password_hash
+    );
 
     if (!isPasswordValid) {
         const error = new Error("Invalid email or password");
