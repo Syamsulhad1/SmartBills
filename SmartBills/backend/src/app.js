@@ -5,6 +5,8 @@ const pool = require("./config/database");
 const { CORS_ORIGIN } = require("./config/environment");
 const { ensurePrivateReceiptStorage } = require("./config/storage");
 const openApiSpec = require("./config/openApiSpec");
+const logger = require("./utils/logger");
+const { success, failure } = require("./utils/response");
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -37,10 +39,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 // ==============================
 
 app.get("/api/health", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "SmartBills API is running"
-    });
+    return success(res, null, "SmartBills API is running");
 });
 
 // Database Health Check
@@ -50,19 +49,21 @@ app.get("/api/health/db", async (req, res) => {
             SELECT current_database() AS database;
         `);
 
-        res.status(200).json({
-            success: true,
-            message: "SmartBills API and PostgreSQL are connected",
-            database: result.rows[0].database
-        });
+        return success(
+            res,
+            { database: result.rows[0].database },
+            "SmartBills API and PostgreSQL are connected"
+        );
 
     } catch (error) {
-        console.error("Database health check failed:", error);
-
-        res.status(500).json({
-            success: false,
-            message: "Database connection failed"
+        logger.error("Database health check failed", {
+            error: {
+                message: error.message,
+                code: error.code,
+                stack: error.stack
+            }
         });
+        return failure(res, "Database connection failed", 500);
     }
 });
 

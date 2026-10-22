@@ -7,6 +7,7 @@ const {
     validateRegisterInput,
     validateLoginInput
 } = require("../validators/authValidator");
+const { success, failure } = require("../utils/response");
 
 
 const register = async (req, res, next) => {
@@ -25,11 +26,7 @@ const register = async (req, res, next) => {
         });
 
         if (errors.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Validation failed",
-                errors
-            });
+            return failure(res, "Validation failed", 400, { errors });
         }
 
         // Register user
@@ -39,13 +36,7 @@ const register = async (req, res, next) => {
             password
         });
 
-        return res.status(201).json({
-            success: true,
-            message: "User registered successfully",
-            data: {
-                user
-            }
-        });
+        return success(res, { user }, "User registered successfully", 201);
 
     } catch (error) {
         next(error);
@@ -66,11 +57,7 @@ const login = async (req, res, next) => {
         });
 
         if (errors.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Validation failed",
-                errors
-            });
+            return failure(res, "Validation failed", 400, { errors });
         }
 
         const authData = await loginUser({
@@ -78,11 +65,7 @@ const login = async (req, res, next) => {
             password
         });
 
-        return res.status(200).json({
-            success: true,
-            message: "Login successful",
-            data: authData
-        });
+        return success(res, authData, "Login successful");
 
     } catch (error) {
         next(error);

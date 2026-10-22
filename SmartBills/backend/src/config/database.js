@@ -8,6 +8,7 @@ const {
     DB_USER,
     DB_PASSWORD
 } = require("./environment");
+const logger = require("../utils/logger");
 
 const pool = new Pool({
     ...(DATABASE_URL
@@ -26,11 +27,17 @@ const pool = new Pool({
 });
 
 pool.on("connect", () => {
-    console.log("PostgreSQL database connected");
+    logger.info("PostgreSQL database connected");
 });
 
 pool.on("error", (error) => {
-    console.error("Unexpected PostgreSQL error:", error);
+    logger.error("Unexpected PostgreSQL error", {
+        error: {
+            message: error.message,
+            code: error.code,
+            stack: error.stack
+        }
+    });
 });
 
 module.exports = pool;

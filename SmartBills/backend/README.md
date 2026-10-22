@@ -5,8 +5,10 @@ analitik, dan fitur AI/OCR). Dibangun dengan Express 5 + PostgreSQL.
 
 ## Status
 
-Repo ini masih berupa **kerangka (scaffold)**: seluruh folder dan file sudah dibuat,
-namun isinya masih placeholder berisi komentar `TODO` yang perlu diimplementasikan.
+Backend menyediakan autentikasi JWT, health check, daftar kategori, pencatatan
+transaksi beserta item, unggah bukti transaksi privat, galeri transaksi per
+pengguna, dan dokumentasi API melalui Swagger UI. Integrasi OCR/AI dan
+pembaruan saldo otomatis belum menjadi bagian dari alur transaksi saat ini.
 
 ## Struktur
 
@@ -33,21 +35,107 @@ backend/
 
 Alur pemanggilan: `routes` → `middleware` (auth/validation) → `controllers` → `services` → `models`.
 
-## Menjalankan
+## Menyiapkan Dan Menjalankan Backend
 
-```bash
+Persyaratan: Node.js/npm dan PostgreSQL sudah terpasang dan PostgreSQL sedang
+berjalan.
+
+### 1. Instal dependency
+
+Jalankan perintah dari folder `backend`:
+
+```powershell
 npm install
-cp .env.example .env   # lalu sesuaikan nilainya
-npm run dev            # nodemon
-npm start              # mode produksi
 ```
 
-Swagger UI tersedia di `http://localhost:5000/api-docs` setelah server berjalan.
-Gunakan `POST /api/auth/register` untuk membuat akun, lalu `POST /api/auth/login`
-untuk mendapatkan token. Klik **Authorize** dan masukkan token JWT sebelum
-mencoba endpoint transaksi. Pada `POST /api/transactions`, pilih
-`multipart/form-data`, isi `type` dan `amount`, lalu pilih file pada field
-`receipt` (opsional).
+### 2. Siapkan file environment
+
+Jika belum memiliki `.env`, salin contoh:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Edit `.env` dan sesuaikan setidaknya `DB_HOST`, `DB_PORT`, `DB_NAME`,
+`DB_USER`, `DB_PASSWORD`, dan `JWT_SECRET` dengan mesin lokal Anda. Jangan
+commit atau membagikan `.env` karena berisi konfigurasi rahasia. Bila
+`DATABASE_URL` diisi, koneksi itu akan digunakan sebagai pengganti konfigurasi
+database terpisah.
+
+Contoh pengaturan database pengembangan lokal:
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=smartbills
+DB_USER=postgres
+DB_PASSWORD=password_postgres_lokal
+JWT_SECRET=ganti_dengan_secret_lokal_yang_kuat
+```
+
+Pastikan database yang ditulis pada `DB_NAME` sudah dibuat di PostgreSQL.
+Dalam workflow proyek ini, `smartbills` adalah database pengembangan utama.
+Database bernama `smartbills_schema_test` hanya untuk pengujian setup dari
+database kosong; gunakan hanya jika memang ingin menjalankan pengujian skema
+terisolasi.
+
+### 3. Buat skema database
+
+Untuk database baru yang masih kosong, jalankan:
+
+```powershell
+npm run db:setup
+```
+
+Perintah ini membuat tabel, foreign key, indeks, dan kategori awal di database
+yang sedang dikonfigurasi dalam `.env`. Pastikan `DB_NAME` atau `DATABASE_URL`
+menunjuk ke database yang memang ingin disiapkan sebelum menjalankannya.
+
+Jika database `smartbills` sudah berisi skema dan API berjalan, setup tidak
+perlu dijalankan ulang. `IF NOT EXISTS` mencegah pembuatan ulang objek yang
+sudah ada, tetapi skrip ini bukan migration dan tidak memperbarui struktur
+tabel lama. Untuk database lama yang perlu perubahan skema, tinjau dan jalankan
+migration yang sesuai. Selalu pastikan target database dan cadangkan data
+penting sebelum mengubah skema.
+
+### 4. Jalankan server
+
+Mode pengembangan:
+
+```powershell
+npm run dev
+```
+
+Mode normal:
+
+```powershell
+npm start
+```
+
+Server menggunakan port `5000` secara default (dapat diubah dengan `PORT`).
+Biarkan terminal server tetap berjalan.
+
+### 5. Buka Swagger dan uji API
+
+Setelah server aktif, buka:
+
+- Swagger UI: <http://localhost:5000/api-docs>
+- Health check API: <http://localhost:5000/api/health>
+- Health check PostgreSQL: <http://localhost:5000/api/health/db>
+
+Untuk mencoba endpoint yang memerlukan autentikasi, daftarkan akun lewat
+`POST /api/auth/register`, kemudian login lewat `POST /api/auth/login`.
+Salin `data.token` dari respons login, klik **Authorize** di Swagger, dan
+tempel token JWT. `GET /api/categories` menampilkan ID dan nama kategori;
+filter opsional tersedia melalui `?type=EXPENSE` atau `?type=INCOME`.
+Untuk upload transaksi, gunakan `POST /api/transactions` dengan
+`multipart/form-data`.
+
+Jalankan tes otomatis dari folder `backend` dengan:
+
+```powershell
+npm test
+```
 
 ## Ketergantungan utama
 
@@ -62,7 +150,7 @@ mencoba endpoint transaksi. Pada `POST /api/transactions`, pilih
 
 ## Role Pengguna
 
-Setelah database tersedia, tambahkan role dengan migration berikut:
+Untuk database lama yang belum memiliki kolom role, jalankan migration:
 
 ```bash
 npm run migrate:roles
@@ -80,7 +168,9 @@ pengguna lain.
 
 ## Model Transaksi
 
-Jalankan migration transaksi sebelum memakai model `transactions`:
+`npm run db:setup` membuat skema transaksi saat menyiapkan database kosong.
+Migration berikut tersedia untuk database lama yang belum memiliki skema atau
+kolom transaksi terkini:
 
 ```bash
 npm run migrate:transactions
@@ -88,15 +178,6 @@ npm run migrate:transactions
 
 Kolom `source` menerima `MANUAL`, `OCR`, atau `AI`. Query detail transaksi selalu
 dibatasi dengan `user_id` agar transaksi pengguna lain tidak dapat diakses.
-
-## Setup Database Dan Bukti Transaksi
-
-Untuk membuat skema lengkap dari database kosong, termasuk foreign key, indeks,
-dan kategori awal, jalankan:
-
-```bash
-npm run db:setup
-```
 
 Bukti transaksi disimpan secara privat di `uploads/receipts`. Database menyimpan
 nama file acak di `transactions.image_url`; folder ini tidak dipublikasikan

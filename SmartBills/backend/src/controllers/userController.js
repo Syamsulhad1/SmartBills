@@ -1,24 +1,15 @@
 const { findAllUsers } = require("../models/userModel");
+const { success } = require("../utils/response");
 
 const getMyProfile = (req, res) => {
-    return res.status(200).json({
-        success: true,
-        data: {
-            user: req.user
-        }
-    });
+    return success(res, { user: req.user }, "Profile retrieved");
 };
 
 const getAllUsers = async (req, res, next) => {
     try {
         const users = await findAllUsers();
 
-        return res.status(200).json({
-            success: true,
-            data: {
-                users
-            }
-        });
+        return success(res, { users }, "Users retrieved");
     } catch (error) {
         return next(error);
     }

@@ -2,11 +2,9 @@ const jwt = require("jsonwebtoken");
 
 const { JWT_SECRET } = require("../config/environment");
 const { findUserById } = require("../models/userModel");
+const { failure } = require("../utils/response");
 
-const unauthorized = (res) => res.status(401).json({
-    success: false,
-    message: "Authentication required"
-});
+const unauthorized = (res) => failure(res, "Authentication required", 401);
 
 const protect = async (req, res, next) => {
     if (!JWT_SECRET) {
@@ -56,10 +54,7 @@ const authorize = (...roles) => (req, res, next) => {
     }
 
     if (!roles.includes(req.user.role)) {
-        return res.status(403).json({
-            success: false,
-            message: "You do not have permission to access this resource"
-        });
+        return failure(res, "You do not have permission to access this resource", 403);
     }
 
     return next();

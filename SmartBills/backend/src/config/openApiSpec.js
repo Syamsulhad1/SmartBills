@@ -13,6 +13,7 @@ const openApiSpec = {
     ],
     tags: [
         { name: "Authentication" },
+        { name: "Categories" },
         { name: "Transactions" }
     ],
     components: {
@@ -59,6 +60,59 @@ const openApiSpec = {
         }
     },
     paths: {
+        "/api/categories": {
+            get: {
+                tags: ["Categories"],
+                summary: "List available transaction categories",
+                description: "Returns seeded categories. Filter by INCOME or EXPENSE; an authenticated JWT is required.",
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: "type",
+                        in: "query",
+                        required: false,
+                        schema: { type: "string", enum: ["INCOME", "EXPENSE"] }
+                    }
+                ],
+                responses: {
+                    200: {
+                        description: "Categories with their IDs and transaction types",
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: "object",
+                                    properties: {
+                                        success: { type: "boolean" },
+                                        message: { type: "string" },
+                                        data: {
+                                            type: "object",
+                                            properties: {
+                                                categories: {
+                                                    type: "array",
+                                                    items: {
+                                                        type: "object",
+                                                        properties: {
+                                                            category_id: { type: "integer" },
+                                                            name: { type: "string" },
+                                                            type: {
+                                                                type: "string",
+                                                                enum: ["INCOME", "EXPENSE"]
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    400: { description: "Unsupported category type" },
+                    401: { description: "Authentication required" }
+                }
+            }
+        },
         "/api/auth/register": {
             post: {
                 tags: ["Authentication"],

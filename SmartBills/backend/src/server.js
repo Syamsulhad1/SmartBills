@@ -1,6 +1,7 @@
 const app = require("./app");
 const { PORT } = require("./config/environment");
+const logger = require("./utils/logger");
 
 app.listen(PORT, () => {
-    console.log(`SmartBills API running on port ${PORT}`);
+    logger.info("SmartBills API started", { port: PORT });
 });

@@ -10,6 +10,8 @@ const {
 } = require("../models/transactionModel");
 const { findItemsByTransactionId } = require("../models/transactionItemModel");
 const { createTransactionWithItems } = require("../services/transactionService");
+const logger = require("../utils/logger");
+const { success, failure } = require("../utils/response");
 const {
     validateCreateTransaction,
     parsePagination
@@ -30,11 +32,13 @@ const listTransactions = async (req, res) => {
     const pagination = parsePagination(req.query);
     const transactions = await findTransactionsByUserId(req.user.user_id, pagination);
 
-    res.json({
-        success: true,
-        data: transactions.map(toTransactionResponse),
-        pagination
-    });
+    return success(
+        res,
+        transactions.map(toTransactionResponse),
+        "Transactions retrieved",
+        200,
+        { pagination }
+    );
 };
 
 const createTransaction = async (req, res) => {
@@ -59,7 +63,12 @@ const createTransaction = async (req, res) => {
                 await fs.promises.unlink(req.file.path);
             } catch (cleanupError) {
                 if (cleanupError.code !== "ENOENT") {
-                    console.error("Failed to remove rejected receipt upload:", cleanupError);
+                    logger.error("Failed to remove rejected receipt upload", {
+                        error: {
+                            message: cleanupError.message,
+                            code: cleanupError.code
+                        }
+                    });
                 }
             }
         }
@@ -67,23 +76,21 @@ const createTransaction = async (req, res) => {
         throw error;
     }
 
-    res.status(201).json({
-        success: true,
-        message: "Transaction created",
-        data: {
+    return success(
+        res,
+        {
             ...toTransactionResponse(transaction),
             items: transaction.items
-        }
-    });
+        },
+        "Transaction created",
+        201
+    );
 };
 
 const getTransactionReceipt = async (req, res) => {
     const transactionId = Number(req.params.transactionId);
     if (!Number.isSafeInteger(transactionId) || transactionId <= 0) {
-        return res.status(400).json({
-            success: false,
-            message: "transactionId must be a positive integer"
-        });
+        return failure(res, "transactionId must be a positive integer", 400);
     }
 
     const transaction = await findTransactionByIdForUser(
@@ -92,18 +99,12 @@ const getTransactionReceipt = async (req, res) => {
     );
 
     if (!transaction || !transaction.image_url) {
-        return res.status(404).json({
-            success: false,
-            message: "Receipt not found"
-        });
+        return failure(res, "Receipt not found", 404);
     }
 
     const receiptPath = getReceiptPath(transaction.image_url);
     if (!receiptPath) {
-        return res.status(404).json({
-            success: false,
-            message: "Receipt not found"
-        });
+        return failure(res, "Receipt not found", 404);
     }
 
     let buffer;
@@ -111,10 +112,7 @@ const getTransactionReceipt = async (req, res) => {
         buffer = await fs.promises.readFile(receiptPath);
     } catch (error) {
         if (error.code === "ENOENT") {
-            return res.status(404).json({
-                success: false,
-                message: "Receipt file is missing"
-            });
+            return failure(res, "Receipt file is missing", 404);
         }
 
         throw error;
@@ -137,10 +135,7 @@ const getTransactionReceipt = async (req, res) => {
 const getTransactionDetails = async (req, res) => {
     const transactionId = Number(req.params.transactionId);
     if (!Number.isSafeInteger(transactionId) || transactionId <= 0) {
-        return res.status(400).json({
-            success: false,
-            message: "transactionId must be a positive integer"
-        });
+        return failure(res, "transactionId must be a positive integer", 400);
     }
 
     const transaction = await findTransactionByIdForUser(
@@ -149,20 +144,14 @@ const getTransactionDetails = async (req, res) => {
     );
 
     if (!transaction) {
-        return res.status(404).json({
-            success: false,
-            message: "Transaction not found"
-        });
+        return failure(res, "Transaction not found", 404);
     }
 
     const items = await findItemsByTransactionId(transactionId);
-    return res.json({
-        success: true,
-        data: {
-            ...toTransactionResponse(transaction),
-            items
-        }
-    });
+    return success(res, {
+        ...toTransactionResponse(transaction),
+        items
+    }, "Transaction retrieved");
 };
 
 module.exports = {

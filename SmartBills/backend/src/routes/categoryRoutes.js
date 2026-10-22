@@ -1,14 +1,11 @@
 const express = require("express");
 const { protect } = require("../middleware/authMiddleware");
+const { getCategories } = require("../controllers/categoryController");
 
 const router = express.Router();
 
 router.use(protect);
 
-router.get("/", (req, res) => {
-    res.json({
-        message: "Category API"
-    });
-});
+router.get("/", getCategories);
 
 module.exports = router;
