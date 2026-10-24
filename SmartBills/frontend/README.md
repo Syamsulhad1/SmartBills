@@ -1,50 +1,58 @@
 # SmartBills Frontend
 
-Frontend web SmartBills menggunakan React + Vite, React Router, Bootstrap 5, dan Chart.js. Disesuaikan dengan backend Express 5 + PostgreSQL.
+Frontend web SmartBills menggunakan React + Vite dan Bootstrap 5, terhubung ke
+backend Express 5 + PostgreSQL.
 
 ## Kebutuhan
+
 - Node.js 20+ (disarankan)
 - Backend SmartBills aktif pada `http://localhost:5000`
-- Akun yang sudah terdaftar melalui endpoint backend
+- PostgreSQL sudah disiapkan dan backend dapat terhubung
 
 ## Menjalankan
+
+Jalankan dari folder `frontend`:
+
 ```powershell
 npm install
 Copy-Item .env.example .env
 npm run dev
 ```
+
 Buka URL Vite yang ditampilkan di terminal (umumnya `http://localhost:5173`).
+`VITE_API_BASE_URL` di `.env` mengarah ke `http://localhost:5000/api` secara
+default. Restart Vite setelah mengubah `.env`.
 
-Atur `VITE_API_BASE_URL` di `.env` bila backend berada di host/port lain. Setelah mengubah `.env`, restart Vite.
+## Fitur yang dihubungkan
 
-## Yang sudah dihubungkan
-- `POST /api/auth/login`
-- `POST /api/auth/register`
-- `GET /api/users/me`
-- `GET /api/categories`
-- `GET /api/transactions?limit=50&offset=0`
-- `GET /api/transactions/:transactionId`
-- `POST /api/transactions` dengan `multipart/form-data`
-- `GET /api/transactions/:transactionId/receipt` untuk bukti privat
+- Login dan registrasi JWT.
+- Dashboard dari `GET /api/analytics?period=monthly`.
+- Profil serta penetapan saldo awal satu kali.
+- Daftar, tambah, dan hapus transaksi; upload bukti privat.
+- OCR gambar lokal melalui `POST /api/ai/ocr`, dilanjutkan parsing draft Gemini
+  melalui `POST /api/ai/parse-transaction`.
 
-API privat mengirim `Authorization: Bearer <JWT>`. Token disimpan di `sessionStorage` agar sesi berakhir saat tab/sesi browser ditutup. Untuk produksi, tinjau ulang strategi penyimpanan token sesuai model ancaman aplikasi.
+API privat menggunakan `Authorization: Bearer <token>`. Token disimpan di
+`sessionStorage` agar sesi berakhir saat tab ditutup. Untuk produksi, tinjau
+ulang strategi penyimpanan token sesuai model ancaman aplikasi.
 
-## Catatan status fitur
-Backend yang dijelaskan saat ini belum menjalankan OCR/AI, belum memperbarui saldo otomatis, dan belum memiliki endpoint analitik khusus atau harga komoditas. Karena itu:
-- Dashboard hanya menghitung ringkasan sederhana dari transaksi yang berhasil dimuat (maksimum 50 data pada permintaan awal), bukan laporan keuangan lengkap.
-- Pemindai struk di halaman transaksi hanya menyediakan upload bukti dan input manual; tidak menampilkan hasil OCR palsu.
-- Kartu saldo tidak ditampilkan karena API saldo belum dikonfirmasi tersedia.
-- Grafik hanya merangkum transaksi yang telah dimuat di browser.
+Untuk OCR lokal, backend API dan service Tesseract harus berjalan terpisah
+(instruksi ada di README backend). Saat halaman Parsing bukti dibuka, aplikasi
+meminta izin kamera dan menampilkan pratinjau; pengguna juga dapat memilih foto
+sebagai alternatif. Foto diproses melalui OCR lalu teksnya dikirim ke Gemini.
+Hasilnya langsung mengisi form transaksi bersama foto bukti, tanpa menampilkan
+teks OCR atau JSON mentah. Hasil AI tetap draft: tinjau dan koreksi data
+sebelum menyimpan. Hanya penyimpanan transaksi yang memperbarui saldo.
+
+Ringkasan dashboard dihitung backend untuk seluruh periode, sedangkan tabel
+transaksi menampilkan maksimum 50 data terbaru.
 
 ## Struktur
+
 ```text
 src/
-  components/       # sidebar, stat card, protected route
-  layouts/          # dashboard shell
-  pages/            # login, register, dashboard, transaksi, detail, scanner, profil
-  services/         # fetch client dan service API
-  utils/            # format mata uang/tanggal
-  App.jsx
-  main.jsx
+  api.js       # fetch client dengan autentikasi bearer
+  App.jsx      # login, dashboard, transaksi, parsing bukti, akun
   index.css
+  main.jsx
 ```

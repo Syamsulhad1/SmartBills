@@ -87,3 +87,37 @@ test("error middleware hides internal errors and preserves client errors", () =>
         console.warn = originalWarn;
     }
 });
+
+test("AI provider errors expose only bounded diagnostic codes", () => {
+    const res = createResponse();
+    const originalError = console.error;
+    console.error = () => {};
+
+    try {
+        const error = new Error("Gemini failed to parse the transaction");
+        error.statusCode = 502;
+        error.code = "AI_PROVIDER_FAILED";
+        error.providerStatus = 429;
+        error.providerCode = "RESOURCE_EXHAUSTED";
+        error.providerMessage = "provider response must not be exposed";
+
+        errorMiddleware(
+            error,
+            { method: "POST", path: "/api/ai/parse-transaction" },
+            res,
+            () => {}
+        );
+
+        assert.equal(res.statusCode, 502);
+        assert.deepEqual(res.body, {
+            success: false,
+            message: "Internal server error",
+            code: "AI_PROVIDER_FAILED",
+            providerStatus: 429,
+            providerCode: "RESOURCE_EXHAUSTED"
+        });
+        assert.equal(JSON.stringify(res.body).includes("provider response"), false);
+    } finally {
+        console.error = originalError;
+    }
+});

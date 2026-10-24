@@ -19,7 +19,9 @@ const openApiSpec = {
         { name: "Users" },
         { name: "Categories" },
         { name: "Transactions" },
-        { name: "Analytics" }
+        { name: "Analytics" },
+        { name: "AI" },
+        { name: "News" }
     ],
 
     components: {
@@ -691,6 +693,27 @@ const openApiSpec = {
             }
         },
 
+        "/api/news": {
+            get: {
+                tags: ["News"],
+                summary: "Get recent food price and IHSG news",
+                description:
+                    "Returns recent CNBC Indonesia RSS articles with source links and image URLs when available. Results are cached briefly and require authentication.",
+                security: [{ bearerAuth: [] }],
+                responses: {
+                    200: {
+                        description: "Dashboard news sections and unavailable source identifiers"
+                    },
+                    401: {
+                        description: "Authentication required"
+                    },
+                    502: {
+                        description: "News providers are unavailable"
+                    }
+                }
+            }
+        },
+
         "/api/analytics": {
             get: {
                 tags: ["Analytics"],
@@ -773,6 +796,94 @@ const openApiSpec = {
                     },
                     401: {
                         description: "Authentication required"
+                    }
+                }
+            }
+        },
+
+        "/api/ai/ocr": {
+            post: {
+                tags: ["AI"],
+                summary: "Extract raw text from a receipt image",
+                description:
+                    "Uploads a private receipt image to the local Tesseract OCR service and returns raw text. This does not save a transaction or change the balance.",
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        "multipart/form-data": {
+                            schema: {
+                                type: "object",
+                                required: ["receipt"],
+                                properties: {
+                                    receipt: {
+                                        type: "string",
+                                        format: "binary"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: { description: "Extracted receipt text" },
+                    400: {
+                        description: "Image missing or format unsupported"
+                    },
+                    401: { description: "Authentication required" },
+                    413: { description: "Image exceeds the 4 MB limit" },
+                    422: { description: "No readable text found" },
+                    502: { description: "OCR service failed" },
+                    503: { description: "OCR service is unavailable" },
+                    504: { description: "OCR service request timed out" }
+                }
+            }
+        },
+
+        "/api/ai/parse-transaction": {
+            post: {
+                tags: ["AI"],
+                summary: "Parse OCR text into a transaction draft",
+                description:
+                    "Sends text to Gemini and returns a validated draft only. This endpoint does not create a transaction or update the user's balance.",
+                security: [{ bearerAuth: [] }],
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                required: ["text"],
+                                properties: {
+                                    text: {
+                                        type: "string",
+                                        maxLength: 20000,
+                                        example: "TOKO CONTOH\\nTOTAL Rp 25.000"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: {
+                        description:
+                            "Validated transaction draft. Review the status and warnings before saving."
+                    },
+                    400: {
+                        description: "OCR text is missing or invalid"
+                    },
+                    401: {
+                        description: "Authentication required"
+                    },
+                    502: {
+                        description: "Gemini provider request failed"
+                    },
+                    503: {
+                        description: "Gemini is unavailable or rate limited"
+                    },
+                    504: {
+                        description: "Gemini request timed out"
                     }
                 }
             }

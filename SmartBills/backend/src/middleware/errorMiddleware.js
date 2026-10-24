@@ -22,6 +22,12 @@ const errorMiddleware = (err, req, res, next) => {
             code: err.code
         }
     };
+    if (Number.isInteger(err.providerStatus)) {
+        logContext.error.providerStatus = err.providerStatus;
+    }
+    if (typeof err.providerCode === "string") {
+        logContext.error.providerCode = err.providerCode.slice(0, 100);
+    }
 
     if (statusCode >= 500) {
         logContext.error.stack = err.stack;
@@ -34,7 +40,21 @@ const errorMiddleware = (err, req, res, next) => {
         ? "Internal server error"
         : err.message || "Request failed";
 
-    return failure(res, message, statusCode, err.details ? { errors: err.details } : {});
+    const details = {};
+    if (err.details) {
+        details.errors = err.details;
+    }
+    if (typeof err.code === "string" && /^(AI|OCR)_[A-Z_]+$/.test(err.code)) {
+        details.code = err.code;
+    }
+    if (Number.isInteger(err.providerStatus)) {
+        details.providerStatus = err.providerStatus;
+    }
+    if (typeof err.providerCode === "string") {
+        details.providerCode = err.providerCode.slice(0, 100);
+    }
+
+    return failure(res, message, statusCode, details);
 };
 
 module.exports = errorMiddleware;

@@ -14,6 +14,7 @@ npm-debug.log*
 # Uploads (bukti transaksi / nota OCR)
 uploads/
 tmp/
+ocr-service/node_modules/
 
 # Coverage & test output
 coverage/

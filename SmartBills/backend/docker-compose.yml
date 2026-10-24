@@ -1,0 +1,10 @@
+services:
+  ocr:
+    build:
+      context: ./ocr-service
+    image: smartbills-ocr:local
+    environment:
+      OCR_SERVICE_TOKEN: ${OCR_SERVICE_TOKEN:?Set OCR_SERVICE_TOKEN in backend/.env}
+      PORT: "8080"
+    ports:
+      - "127.0.0.1:8080:8080"

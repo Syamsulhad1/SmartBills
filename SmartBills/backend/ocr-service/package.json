@@ -1,0 +1,13 @@
+{
+  "name": "smartbills-ocr-service",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "tesseract.js": "^6.0.1"
+  }
+}

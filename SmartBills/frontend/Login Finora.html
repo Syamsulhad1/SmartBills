@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Masuk | Finora</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+:root{--navy:#0b1f3a;--navy2:#12315c;--em:#19c39a;--gold:#e8b44c;--bg:#f5f7fa;--card:#fff;--ink:#0f1c2e;--mute:#64748b;--line:#dbe2ea;--bad:#c2310f;--acc:#0e7c66;--accT:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a1626;--card:#0f2038;--ink:#eaf0f8;--mute:#93a4ba;--line:#223a5a;--bad:#ff8a65;--acc:#19c39a;--accT:#04261e}}
+:root[data-theme="dark"]{--bg:#0a1626;--card:#0f2038;--ink:#eaf0f8;--mute:#93a4ba;--line:#223a5a;--bad:#ff8a65;--acc:#19c39a;--accT:#04261e}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{min-height:100vh;display:grid;grid-template-columns:1.1fr 1fr;font-family:"Plus Jakarta Sans","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+/* Panel kiri */
+.hero{position:relative;overflow:hidden;background:linear-gradient(155deg,var(--navy),var(--navy2));color:#fff;padding:48px 56px;display:flex;flex-direction:column;justify-content:space-between}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(circle at 60% 50%,#000 20%,transparent 75%)}
+.brand{position:relative;display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.01em}
+.logo{width:34px;height:34px;border-radius:10px;background:var(--em);display:grid;place-items:center}
+.hero h2{position:relative;margin:0 0 8px;font-size:34px;line-height:1.15;letter-spacing:-.02em;max-width:420px}
+.hero p.lead{position:relative;margin:0;color:#a9bcd6;max-width:380px;font-size:15px;line-height:1.55}
+.stage{position:relative;height:300px;margin:28px 0}
+.panel{position:absolute;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:16px;backdrop-filter:blur(8px);padding:16px 18px}
+.p1{left:0;top:0;width:min(100%,430px)}
+.p2{right:4%;bottom:0;width:170px;animation:fl 6s ease-in-out infinite}
+.p3{left:6%;bottom:6px;width:190px;animation:fl 7s ease-in-out -2s infinite}
+@keyframes fl{50%{transform:translateY(-8px)}}
+.lbl{font-size:12px;color:#a9bcd6;font-weight:500}
+.bal{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:2px 0 6px}
+.up{display:inline-block;font-size:12px;font-weight:700;color:var(--em);background:rgba(25,195,154,.14);padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:middle}
+#spark{width:100%;height:96px;display:block}
+#line{fill:none;stroke:var(--em);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+#area{fill:url(#g);opacity:0;transition:opacity .8s .9s}
+#area.on{opacity:1}
+.dot{fill:#fff;stroke:var(--em);stroke-width:3;opacity:0;transition:opacity .3s 1.5s}
+.dot.on{opacity:1}
+.ring{display:flex;align-items:center;gap:12px}
+.ring svg{width:54px;height:54px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:7}
+.rt{stroke:rgba(255,255,255,.14)}
+.rv{stroke:var(--gold);stroke-linecap:round;stroke-dasharray:138;stroke-dashoffset:138;animation:rg 1.8s .4s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes rg{to{stroke-dashoffset:38}}
+.bars{display:flex;align-items:flex-end;gap:6px;height:44px;margin-top:8px}
+.bars i{flex:1;background:var(--em);border-radius:4px 4px 0 0;transform-origin:bottom;animation:bar 2.4s ease-in-out infinite alternate}
+@keyframes bar{from{transform:scaleY(.35)}to{transform:scaleY(1)}}
+.trust{position:relative;font-size:13px;color:#a9bcd6;display:flex;align-items:center;gap:8px}
+/* Panel kanan */
+.side{display:grid;place-items:center;padding:40px 24px}
+.box{width:100%;max-width:400px}
+.box h1{margin:0 0 6px;font-size:28px;letter-spacing:-.02em}
+.sub{margin:0 0 28px;color:var(--mute);font-size:15px}
+.fld{position:relative;margin-bottom:16px}
+.fld input{width:100%;padding:22px 14px 8px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit;font-size:16px;transition:border-color .2s,box-shadow .2s}
+.fld label{position:absolute;left:15px;top:16px;font-size:15px;color:var(--mute);pointer-events:none;transition:all .18s}
+.fld input:focus+label,.fld input:not(:placeholder-shown)+label{top:7px;font-size:11.5px;font-weight:600}
+.fld input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 18%,transparent)}
+.fld.err input{border-color:var(--bad)}
+.fld.err{animation:sh .4s}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.tg{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--mute);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:8px;border-radius:8px}
+.row{display:flex;justify-content:space-between;align-items:center;margin:4px 0 22px;font-size:14px}
+.row label{display:flex;gap:8px;align-items:center;color:var(--mute);cursor:pointer}
+.row a{color:var(--acc);font-weight:600;text-decoration:none}
+.go{width:100%;height:50px;border:0;border-radius:12px;background:var(--acc);color:var(--accT);font:inherit;font-weight:700;font-size:16px;cursor:pointer;position:relative;overflow:hidden;transition:transform .12s,filter .2s}
+.go:hover{filter:brightness(1.08)}.go:active{transform:scale(.985)}
+.go:focus-visible,.tg:focus-visible,.row a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.go .spin,.go .ok{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:opacity .2s}
+.spin i{width:22px;height:22px;border:3px solid color-mix(in srgb,var(--accT) 30%,transparent);border-top-color:var(--accT);border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.ok path{stroke-dasharray:30;stroke-dashoffset:30;transition:stroke-dashoffset .5s .1s}
+.go.load .t{opacity:0}.go.load .spin{opacity:1}
+.go.done .t{opacity:0}.go.done .ok{opacity:1}.go.done .ok path{stroke-dashoffset:0}
+.t{transition:opacity .2s}
+#msg{min-height:22px;margin:14px 0 0;font-size:14px;font-weight:600;text-align:center}
+.bad{color:var(--bad)}.good{color:var(--acc)}
+.foot{margin-top:28px;text-align:center;font-size:12.5px;color:var(--mute);display:flex;gap:6px;justify-content:center;align-items:center}
+@media (max-width:860px){body{grid-template-columns:1fr}.hero{padding:28px 24px}.stage,.hero p.lead,.trust{display:none}.hero h2{font-size:22px;margin:18px 0 0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{stroke-dashoffset:38}#area,.dot{opacity:1}}
+</style>
+</head>
+<body>
+<section class="hero" aria-hidden="false">
+  <div class="brand"><span class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#04261e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l6-7 4 4 6-9"/></svg></span>Finora</div>
+  <div>
+    <h2>Semua keuanganmu, dalam satu pandangan.</h2>
+    <p class="lead">Pantau arus kas, anggaran, dan tabungan secara real time dengan data yang terenkripsi.</p>
+    <div class="stage" aria-hidden="true">
+      <div class="panel p1">
+        <div class="lbl">Total saldo</div>
+        <div class="bal"><span id="bal">Rp 0</span><span class="up" id="pct">+0,0%</span></div>
+        <svg id="spark" viewBox="0 0 400 96" preserveAspectRatio="none">
+          <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#19c39a" stop-opacity=".35"/><stop offset="1" stop-color="#19c39a" stop-opacity="0"/></linearGradient></defs>
+          <path id="area"/><path id="line"/><circle class="dot" id="dot" r="5"/>
+        </svg>
+      </div>
+      <div class="panel p3"><div class="ring"><svg viewBox="0 0 54 54"><circle class="rt" cx="27" cy="27" r="22"/><circle class="rv" cx="27" cy="27" r="22"/></svg><div><div class="lbl">Target tabungan</div><b style="font-size:18px">72%</b></div></div></div>
+      <div class="panel p2"><div class="lbl">Pengeluaran</div><div class="bars"><i style="animation-delay:0s"></i><i style="animation-delay:-.6s"></i><i style="animation-delay:-1.2s"></i><i style="animation-delay:-.3s"></i><i style="animation-delay:-.9s"></i></div></div>
+    </div>
+  </div>
+  <div class="trust"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>Enkripsi 256-bit dan autentikasi aman</div>
+</section>
+
+<main class="side">
+  <div class="box">
+    <h1>Selamat datang kembali</h1>
+    <p class="sub">Masuk untuk melanjutkan ke dasbor keuanganmu.</p>
+    <form id="f" novalidate>
+      <div class="fld" id="fe"><input id="em" type="email" autocomplete="username" placeholder=" "><label for="em">Email</label></div>
+      <div class="fld" id="fp"><input id="pw" type="password" autocomplete="current-password" placeholder=" "><label for="pw">Kata sandi</label>
+        <button class="tg" id="tg" type="button" aria-label="Tampilkan kata sandi">Tampilkan</button></div>
+      <div class="row"><label><input type="checkbox"> Ingat saya</label><a href="#">Lupa kata sandi?</a></div>
+      <button class="go" id="go" type="submit">
+        <span class="t">Masuk</span>
+        <span class="spin"><i></i></span>
+        <span class="ok"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      </button>
+      <p id="msg" role="status" aria-live="polite"></p>
+    </form>
+    <div class="foot">Belum punya akun? <a href="#" style="color:var(--acc);font-weight:600;text-decoration:none">Daftar gratis</a></div>
+  </div>
+</main>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var line=$("line"),area=$("area"),dot=$("dot"),bal=$("bal"),pct=$("pct");
+  var reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function fmt(n){return "Rp "+Math.round(n).toLocaleString("id-ID")}
+
+  // Grafik garis yang menggambar dirinya, diperbarui berkala
+  function chart(){
+    var n=14,pts=[],v=40;
+    for(var i=0;i<n;i++){v+=Math.random()*14-3;v=Math.max(15,Math.min(80,v));pts.push([i*(400/(n-1)),96-v-6])}
+    var d="M"+pts.map(function(p){return p[0].toFixed(1)+" "+p[1].toFixed(1)}).join(" L");
+    line.setAttribute("d",d);area.setAttribute("d",d+" L400 96 L0 96Z");
+    var L=line.getTotalLength();
+    line.style.transition="none";line.style.strokeDasharray=L;line.style.strokeDashoffset=L;
+    area.classList.remove("on");dot.classList.remove("on");
+    var last=pts[n-1];dot.setAttribute("cx",last[0]-4);dot.setAttribute("cy",last[1]);
+    void line.getBoundingClientRect();
+    line.style.transition="stroke-dashoffset 1.6s cubic-bezier(.3,.7,.2,1)";line.style.strokeDashoffset=0;
+    area.classList.add("on");dot.classList.add("on");
+    var target=128450000+Math.random()*9000000,g=(3+Math.random()*6);
+    count(target);pct.textContent="+"+g.toFixed(1).replace(".",",")+"%";
+  }
+  var from=0,raf;
+  function count(to){cancelAnimationFrame(raf);var s=performance.now(),a=from;
+    function step(t){var p=Math.min((t-s)/1400,1),e=1-Math.pow(1-p,3);bal.textContent=fmt(a+(to-a)*e);if(p<1)raf=requestAnimationFrame(step);else from=to}
+    if(reduce){bal.textContent=fmt(to);from=to}else raf=requestAnimationFrame(step)}
+  chart();if(!reduce)setInterval(chart,7000);
+
+  // Form
+  var em=$("em"),pw=$("pw"),tg=$("tg"),go=$("go"),msg=$("msg"),fe=$("fe"),fp=$("fp");
+  tg.addEventListener("click",function(){var s=pw.type==="password";pw.type=s?"text":"password";
+    tg.textContent=s?"Sembunyikan":"Tampilkan";tg.setAttribute("aria-label",s?"Sembunyikan kata sandi":"Tampilkan kata sandi")});
+  function bad(box,text){box.classList.remove("err");void box.offsetWidth;box.classList.add("err");msg.className="bad";msg.textContent=text}
+  [em,pw].forEach(function(x){x.addEventListener("input",function(){x.parentNode.classList.remove("err");msg.textContent=""})});
+  $("f").addEventListener("submit",function(e){
+    e.preventDefault();
+    if(!/^\S+@\S+\.\S+$/.test(em.value.trim())){bad(fe,"Masukkan alamat email yang valid, contoh: nama@email.com.");em.focus();return}
+    if(pw.value.length<6){bad(fp,"Kata sandi minimal 6 karakter.");pw.focus();return}
+    msg.textContent="";go.classList.add("load");go.disabled=true;
+    /* Ganti setTimeout ini dengan fetch("/api/login", ...) milikmu */
+    setTimeout(function(){go.classList.remove("load");go.classList.add("done");
+      msg.className="good";msg.textContent="Berhasil masuk. Mengalihkan ke dasbor…";
+      /* window.location.href="/dashboard"; */
+      setTimeout(function(){go.classList.remove("done");go.disabled=false},2200)},1100);
+  });
+})();
+</script>
+</body>
+</html>

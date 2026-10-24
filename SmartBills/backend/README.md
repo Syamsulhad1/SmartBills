@@ -8,8 +8,10 @@ analitik, dan fitur AI/OCR). Dibangun dengan Express 5 + PostgreSQL.
 Backend menyediakan autentikasi JWT, health check, daftar kategori, pencatatan
 transaksi beserta item, unggah bukti transaksi privat, sinkronisasi saldo
 transaksional, analytics historis, galeri receipt privat, dan dokumentasi API
-melalui Swagger UI. Integrasi OCR/AI eksternal belum tersedia; transaksi saat
-ini dicatat melalui form manual.
+melalui Swagger UI. Dashboard juga menampilkan berita harga pangan dan IHSG
+dari feed RSS CNBC Indonesia. Parsing teks OCR melalui Gemini menghasilkan draft untuk
+ditinjau. OCR gambar lokal memakai Tesseract.js pada service terpisah. Draft AI
+tidak disimpan otomatis atau mengubah saldo.
 
 ## Struktur
 
@@ -58,10 +60,26 @@ Copy-Item .env.example .env
 ```
 
 Edit `.env` dan sesuaikan setidaknya `DB_HOST`, `DB_PORT`, `DB_NAME`,
-`DB_USER`, `DB_PASSWORD`, dan `JWT_SECRET` dengan mesin lokal Anda. Jangan
-commit atau membagikan `.env` karena berisi konfigurasi rahasia. Bila
+`DB_USER`, `DB_PASSWORD`, dan `JWT_SECRET` dengan mesin lokal Anda. Untuk
+frontend Vite lokal, pastikan `CLIENT_URL` dan `CORS_ORIGIN` menunjuk ke
+`http://localhost:5173`. Jangan commit atau membagikan `.env` karena berisi konfigurasi rahasia. Bila
 `DATABASE_URL` diisi, koneksi itu akan digunakan sebagai pengganti konfigurasi
 database terpisah.
+
+OCR lokal memerlukan `OCR_SERVICE_TOKEN` yang sama antara backend dan service
+OCR. Gunakan token acak minimal 32 karakter, lalu isi `OCR_SERVICE_URL` dengan
+`http://localhost:8080`. Dari PowerShell, token acak dapat dibuat dengan:
+
+```powershell
+$bytes = New-Object byte[] 32
+$rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$rng.GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+$rng.Dispose()
+```
+
+Salin hasilnya ke `OCR_SERVICE_TOKEN` dalam `.env` lokal; jangan commit atau
+membagikan token tersebut.
 
 Contoh pengaturan database pengembangan lokal:
 
@@ -131,6 +149,11 @@ tempel token JWT. `GET /api/categories` menampilkan ID dan nama kategori;
 filter opsional tersedia melalui `?type=EXPENSE` atau `?type=INCOME`.
 Untuk upload transaksi, gunakan `POST /api/transactions` dengan
 `multipart/form-data`.
+
+Berita dashboard dimuat melalui `GET /api/news` (JWT required), berasal dari
+feed RSS CNBC Indonesia, dan di-cache sementara di backend. Artikel selalu
+ditautkan ke sumber aslinya; gambar ditampilkan dari URL gambar feed jika
+tersedia. Ketersediaan dan gambar artikel mengikuti feed penyedia.
 
 Jalankan tes otomatis dari folder `backend` dengan:
 
@@ -218,8 +241,56 @@ Jika validasi atau penyimpanan database gagal, file unggahan dibersihkan.
   memverifikasi JWT dan kepemilikan transaksi.
 
 Galeri web/mobile harus meminta `receipt_url` dengan token JWT (misalnya memakai
-`fetch` lalu membuat object URL dari respons gambar). Path filesystem dan file
-bukti tidak tersedia sebagai URL publik. Endpoint ini belum menjalankan OCR/AI.
+`fetch` lalu membuat object URL dari respons gambar). Path filesystem dan file bukti tidak tersedia sebagai URL publik.
+
+### Menjalankan OCR Lokal
+
+Service Tesseract berjalan terpisah dari API backend. Pasang dependency OCR
+satu kali dari folder `backend\ocr-service`:
+
+```powershell
+Set-Location .\ocr-service
+npm ci
+Set-Location ..
+```
+
+Isi `OCR_SERVICE_TOKEN` dan `OCR_SERVICE_URL` di `.env` backend, lalu jalankan
+OCR dan API pada dua terminal:
+
+```powershell
+npm run start:ocr
+```
+
+```powershell
+npm run dev
+```
+
+Service OCR memakai port `8080` secara default; API backend tetap di `5000`.
+Keduanya memakai token internal yang sama untuk mengamankan panggilan OCR.
+
+Endpoint `POST /api/ai/ocr` memerlukan JWT dan `multipart/form-data` dengan
+field `receipt`. Gambar JPEG/PNG/WebP dibatasi maksimal 4 MB. Respons berisi
+teks OCR mentah saja; gambar tidak disimpan oleh endpoint OCR.
+
+### Parsing Teks Bukti Dengan Gemini
+
+Isi `AI_API_KEY` di `.env`; model default aplikasi adalah
+`gemini-3.5-flash-lite`, yang ditujukan untuk ekstraksi data berlatensi rendah.
+Ubah `AI_MODEL` bila perlu menggunakan model lain yang tersedia untuk proyek
+Google AI Studio Anda. Request parsing dibatasi 30 detik dan respons dibatasi
+4096 token. Jangan pernah mengirim API key dari frontend. Endpoint terlindungi JWT:
+
+- `POST /api/ai/parse-transaction` menerima JSON `{"text":"..."}`.
+- Gunakan teks dari `POST /api/ai/ocr` sebagai masukan parser.
+- Teks OCR dikirim ke Google Gemini untuk menghasilkan jenis, nominal,
+  merchant, tanggal, kategori, item, dan warnings.
+- Hasil hanya draft (`ready_for_review` atau `needs_review`). Periksa dan
+  koreksi draft sebelum secara terpisah mengirim transaksi ke endpoint transaksi.
+- Endpoint parsing tidak menyimpan data dan tidak mengubah saldo. Teks yang
+  dikirim diproses oleh Google; hapus/samarkan informasi sensitif yang tidak
+  diperlukan.
+- Error provider hanya mencatat status HTTP dan kode provider yang dibatasi;
+  body respons dan teks OCR tidak dimasukkan ke log.
 
 ### Sinkronisasi Saldo Dan Analytics
 
@@ -246,7 +317,7 @@ dari seluruh transaksi dalam rentang tersebut, bukan sampel transaksi terbaru.
 
 ## Langkah implementasi berikutnya
 
-1. Implementasikan OCR dan LLM provider dengan validasi hasil sebelum data
-  dikirim ke jalur transaksi yang sudah menjaga saldo secara atomik.
+1. Uji alur OCR dan parsing terintegrasi dengan beberapa struk yang sudah
+  disamarkan; akurasi hasil OCR lama tidak perlu diuji ulang.
 2. Tambahkan pengujian integrasi PostgreSQL untuk sinkronisasi saldo bersamaan,
   agregasi analytics, akses lintas pengguna, dan galeri receipt.

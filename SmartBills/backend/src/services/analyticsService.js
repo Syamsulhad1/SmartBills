@@ -41,8 +41,7 @@ const getAnalyticsOverview = async (userId, period) => {
 			throw createError("User not found", 404);
 		}
 
-		const [totalsResult, trendResult, categoriesResult] = await Promise.all([
-			client.query(`
+		const totalsResult = await client.query(`
 				WITH bounds AS (
 					SELECT
 						date_trunc($2::text, CURRENT_TIMESTAMP)::timestamp
@@ -63,8 +62,8 @@ const getAnalyticsOverview = async (userId, period) => {
 				   AND t.transaction_date >= bounds.start_at
 				   AND t.transaction_date < bounds.end_at
 				GROUP BY bounds.start_at, bounds.end_at;
-			`, parameters),
-			client.query(`
+			`, parameters);
+		const trendResult = await client.query(`
 				WITH bounds AS (
 					SELECT
 						date_trunc($2::text, CURRENT_TIMESTAMP)::timestamp
@@ -88,8 +87,8 @@ const getAnalyticsOverview = async (userId, period) => {
 				   AND t.transaction_date < bucket.bucket_start + $4::interval
 				GROUP BY bucket.bucket_start
 				ORDER BY bucket.bucket_start;
-			`, parameters),
-			client.query(`
+			`, parameters);
+		const categoriesResult = await client.query(`
 				WITH bounds AS (
 					SELECT
 						date_trunc($2::text, CURRENT_TIMESTAMP)::timestamp
@@ -110,8 +109,7 @@ const getAnalyticsOverview = async (userId, period) => {
 				  AND t.transaction_date < bounds.end_at
 				GROUP BY c.name
 				ORDER BY SUM(t.amount) DESC, category_name ASC;
-			`, parameters)
-		]);
+			`, parameters);
 
 		const totals = totalsResult.rows[0];
 		return {
@@ -137,8 +135,7 @@ const getReceiptGallery = async ({ userId, period, limit, offset }) => {
 	return withReadSnapshot(async (client) => {
 		const parameters = getWindowParameters(userId, period);
 		const rangeParams = [...parameters, limit, offset];
-		const [countResult, receiptsResult] = await Promise.all([
-			client.query(`
+		const countResult = await client.query(`
 				WITH bounds AS (
 					SELECT
 						date_trunc($2::text, CURRENT_TIMESTAMP)::timestamp
@@ -153,8 +150,8 @@ const getReceiptGallery = async ({ userId, period, limit, offset }) => {
 				  AND t.image_url IS NOT NULL
 				  AND t.transaction_date >= bounds.start_at
 				  AND t.transaction_date < bounds.end_at;
-			`, parameters),
-			client.query(`
+			`, parameters);
+		const receiptsResult = await client.query(`
 				WITH bounds AS (
 					SELECT
 						date_trunc($2::text, CURRENT_TIMESTAMP)::timestamp
@@ -180,8 +177,7 @@ const getReceiptGallery = async ({ userId, period, limit, offset }) => {
 				  AND t.transaction_date < bounds.end_at
 				ORDER BY t.transaction_date DESC, t.transaction_id DESC
 				LIMIT $5 OFFSET $6;
-			`, rangeParams)
-		]);
+			`, rangeParams);
 
 		return {
 			receipts: receiptsResult.rows,

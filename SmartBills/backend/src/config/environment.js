@@ -46,7 +46,9 @@ const config = {
 
     AI_API_KEY: process.env.AI_API_KEY,
     AI_MODEL: process.env.AI_MODEL,
-    OCR_API_KEY: process.env.OCR_API_KEY
+    OCR_API_KEY: process.env.OCR_API_KEY,
+    OCR_SERVICE_URL: process.env.OCR_SERVICE_URL,
+    OCR_SERVICE_TOKEN: process.env.OCR_SERVICE_TOKEN
 };
 
 module.exports = config;
