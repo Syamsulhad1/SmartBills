@@ -1,3 +1,4 @@
+
 const pool = require("../config/database");
 
 const transactionFields = [
@@ -59,11 +60,13 @@ const createTransaction = async ({
     ];
 
     const result = await db.query(query, values);
-
     return result.rows[0];
 };
 
-const findTransactionsByUserId = async (userId, { limit = 50, offset = 0 } = {}) => {
+const findTransactionsByUserId = async (
+    userId,
+    { limit = 50, offset = 0 } = {}
+) => {
     const query = `
         SELECT
             ${transactionSelectColumns},
@@ -76,7 +79,6 @@ const findTransactionsByUserId = async (userId, { limit = 50, offset = 0 } = {})
     `;
 
     const result = await pool.query(query, [userId, limit, offset]);
-
     return result.rows;
 };
 
@@ -92,11 +94,10 @@ const findTransactionByIdForUser = async (transactionId, userId) => {
     `;
 
     const result = await pool.query(query, [transactionId, userId]);
-
     return result.rows[0];
 };
 
-const findCategoryById = async (categoryId, db) => {
+const findCategoryById = async (categoryId, db = pool) => {
     const result = await db.query(
         "SELECT category_id, type FROM categories WHERE category_id = $1;",
         [categoryId]
@@ -105,9 +106,68 @@ const findCategoryById = async (categoryId, db) => {
     return result.rows[0];
 };
 
+// UPDATE: hanya mengubah transaksi milik pengguna terkait.
+const updateTransactionForUser = async ({
+    transactionId,
+    userId,
+    categoryId,
+    type,
+    amount,
+    merchantName,
+    notes,
+    transactionDate
+}, db = pool) => {
+    const query = `
+        UPDATE transactions
+        SET
+            category_id = $3,
+            type = $4,
+            amount = $5,
+            merchant_name = $6,
+            notes = $7,
+            transaction_date = $8
+        WHERE transaction_id = $1
+          AND user_id = $2
+        RETURNING ${transactionColumns};
+    `;
+
+    const values = [
+        transactionId,
+        userId,
+        categoryId,
+        type,
+        amount,
+        merchantName,
+        notes,
+        transactionDate
+    ];
+
+    const result = await db.query(query, values);
+    return result.rows[0] || null;
+};
+
+// DELETE: hanya menghapus transaksi milik pengguna terkait.
+const deleteTransactionForUser = async (
+    transactionId,
+    userId,
+    db = pool
+) => {
+    const query = `
+        DELETE FROM transactions
+        WHERE transaction_id = $1
+          AND user_id = $2
+        RETURNING ${transactionColumns};
+    `;
+
+    const result = await db.query(query, [transactionId, userId]);
+    return result.rows[0] || null;
+};
+
 module.exports = {
     createTransaction,
     findTransactionsByUserId,
     findTransactionByIdForUser,
-    findCategoryById
+    findCategoryById,
+    updateTransactionForUser,
+    deleteTransactionForUser
 };

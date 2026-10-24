@@ -6,9 +6,10 @@ analitik, dan fitur AI/OCR). Dibangun dengan Express 5 + PostgreSQL.
 ## Status
 
 Backend menyediakan autentikasi JWT, health check, daftar kategori, pencatatan
-transaksi beserta item, unggah bukti transaksi privat, galeri transaksi per
-pengguna, dan dokumentasi API melalui Swagger UI. Integrasi OCR/AI dan
-pembaruan saldo otomatis belum menjadi bagian dari alur transaksi saat ini.
+transaksi beserta item, unggah bukti transaksi privat, sinkronisasi saldo
+transaksional, analytics historis, galeri receipt privat, dan dokumentasi API
+melalui Swagger UI. Integrasi OCR/AI eksternal belum tersedia; transaksi saat
+ini dicatat melalui form manual.
 
 ## Struktur
 
@@ -218,12 +219,34 @@ Jika validasi atau penyimpanan database gagal, file unggahan dibersihkan.
 
 Galeri web/mobile harus meminta `receipt_url` dengan token JWT (misalnya memakai
 `fetch` lalu membuat object URL dari respons gambar). Path filesystem dan file
-bukti tidak tersedia sebagai URL publik. Endpoint ini tidak memperbarui saldo
-pengguna dan belum menjalankan OCR/AI.
+bukti tidak tersedia sebagai URL publik. Endpoint ini belum menjalankan OCR/AI.
+
+### Sinkronisasi Saldo Dan Analytics
+
+Pembuatan, pembaruan, dan penghapusan transaksi memperbarui `current_balance`
+di dalam transaksi PostgreSQL yang sama dengan perubahan transaksi dan item.
+Pemasukan menambah saldo, pengeluaran mengurangi saldo, dan operasi ditolak
+apabila menghasilkan saldo negatif. Saldo awal yang ditetapkan setelah
+pencatatan transaksi juga memperhitungkan net transaksi yang sudah ada.
+
+Semua endpoint berikut memerlukan JWT:
+
+- `GET /api/analytics?period=daily` merangkum 7 hari terakhir.
+- `GET /api/analytics?period=weekly` merangkum 12 minggu terakhir.
+- `GET /api/analytics?period=monthly` (default) merangkum 6 bulan terakhir.
+- Overview berisi saldo terkini, total pemasukan/pengeluaran, arus kas bersih,
+  jumlah transaksi, seri arus kas, dan breakdown pengeluaran per kategori.
+- `GET /api/analytics/receipts?period=monthly&limit=12&offset=0` memberikan
+  halaman receipt milik pengguna pada periode yang dipilih. Gambar tetap harus
+  diminta melalui endpoint receipt transaksi yang memverifikasi JWT dan
+  kepemilikan.
+
+Rentang periode mencakup bucket kalender berjalan. Overview dihitung di backend
+dari seluruh transaksi dalam rentang tersebut, bukan sampel transaksi terbaru.
 
 ## Langkah implementasi berikutnya
 
-1. Hubungkan layar upload dan galeri frontend ke endpoint transaksi di atas.
-2. Tambahkan pengujian integrasi menggunakan PostgreSQL untuk upload, akses
-   lintas pengguna, dan kegagalan penyimpanan.
-3. Implementasikan pembaruan saldo serta integrasi OCR/AI secara transaksional.
+1. Implementasikan OCR dan LLM provider dengan validasi hasil sebelum data
+  dikirim ke jalur transaksi yang sudah menjaga saldo secara atomik.
+2. Tambahkan pengujian integrasi PostgreSQL untuk sinkronisasi saldo bersamaan,
+  agregasi analytics, akses lintas pengguna, dan galeri receipt.

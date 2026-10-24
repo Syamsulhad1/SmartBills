@@ -111,28 +111,57 @@ const findUserById = async (userId) => {
  * @returns {Promise<Object|null>}
  */
 const setInitialBalance = async (userId, amount) => {
-    const query = `
-        UPDATE users
-        SET
-            current_balance = $2,
-            initial_balance = $2,
-            initial_balance_set_at = NOW()
-        WHERE user_id = $1
-          AND initial_balance_set_at IS NULL
-        RETURNING
-            user_id,
-            name,
-            email,
-            role,
-            current_balance,
-            initial_balance,
-            initial_balance_set_at,
-            created_at;
-    `;
+    const client = await pool.connect();
 
-    const result = await pool.query(query, [userId, amount]);
+    try {
+        await client.query("BEGIN");
+        const lockedUser = await client.query(`
+            SELECT initial_balance_set_at
+            FROM users
+            WHERE user_id = $1
+            FOR UPDATE;
+        `, [userId]);
 
-    return result.rows[0] || null;
+        if (!lockedUser.rows[0] || lockedUser.rows[0].initial_balance_set_at) {
+            await client.query("COMMIT");
+            return null;
+        }
+
+        const transactionNet = await client.query(`
+            SELECT COALESCE(SUM(
+                CASE WHEN type = 'INCOME' THEN amount ELSE -amount END
+            ), 0)::numeric AS amount
+            FROM transactions
+            WHERE user_id = $1;
+        `, [userId]);
+
+        const result = await client.query(`
+            UPDATE users
+            SET
+                current_balance = $2::numeric + $3::numeric,
+                initial_balance = $2,
+                initial_balance_set_at = NOW()
+            WHERE user_id = $1
+              AND initial_balance_set_at IS NULL
+            RETURNING
+                user_id,
+                name,
+                email,
+                role,
+                current_balance,
+                initial_balance,
+                initial_balance_set_at,
+                created_at;
+        `, [userId, amount, transactionNet.rows[0].amount]);
+
+        await client.query("COMMIT");
+        return result.rows[0] || null;
+    } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+    } finally {
+        client.release();
+    }
 };
 
 

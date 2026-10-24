@@ -9,12 +9,17 @@ const {
     findTransactionByIdForUser
 } = require("../models/transactionModel");
 const { findItemsByTransactionId } = require("../models/transactionItemModel");
-const { createTransactionWithItems } = require("../services/transactionService");
+const {
+    createTransactionWithItems,
+    updateTransactionWithItems,
+    deleteTransaction
+} = require("../services/transactionService");
 const logger = require("../utils/logger");
 const { success, failure } = require("../utils/response");
 const {
     validateCreateTransaction,
-    parsePagination
+    parsePagination,
+    parseTransactionId
 } = require("../validators/transactionValidator");
 
 const toTransactionResponse = (transaction) => {
@@ -154,9 +159,72 @@ const getTransactionDetails = async (req, res) => {
     }, "Transaction retrieved");
 };
 
+const updateTransaction = async (req, res) => {
+    const transactionId = parseTransactionId(
+        req.params.transactionId
+    );
+
+    const input = validateCreateTransaction(req.body);
+
+    const transaction = await updateTransactionWithItems({
+        transactionId,
+        userId: req.user.user_id,
+        ...input
+    });
+
+    return success(
+        res,
+        {
+            ...toTransactionResponse(transaction),
+            items: transaction.items
+        },
+        "Transaction updated"
+    );
+};
+
+
+const deleteTransactionHandler = async (req, res) => {
+    const transactionId = parseTransactionId(
+        req.params.transactionId
+    );
+
+    const transaction = await deleteTransaction({
+        transactionId,
+        userId: req.user.user_id
+    });
+
+    if (transaction.image_url) {
+        const receiptPath = getReceiptPath(transaction.image_url);
+        if (receiptPath) {
+            try {
+                await fs.promises.unlink(receiptPath);
+            } catch (error) {
+                if (error.code !== "ENOENT") {
+                    logger.error("Failed to remove deleted transaction receipt", {
+                        error: {
+                            message: error.message,
+                            code: error.code
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    return success(
+        res,
+        {
+            transaction_id: transaction.transaction_id
+        },
+        "Transaction deleted"
+    );
+};
+
 module.exports = {
     listTransactions,
     createTransaction,
     getTransactionReceipt,
-    getTransactionDetails
+    getTransactionDetails,
+    updateTransaction,
+    deleteTransactionHandler
 };

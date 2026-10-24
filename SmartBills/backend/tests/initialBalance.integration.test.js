@@ -1,7 +1,7 @@
 
 const {
     describe,
-    test,
+    test: nodeTest,
     before,
     after
 } = require("node:test");
@@ -22,8 +22,18 @@ const TEST_PASSWORD = "TestPassword123!";
 let server;
 let baseUrl;
 let databaseAvailable = false;
+let databaseSkipReason = "";
 let testEmails = [];
 let testUsers = [];
+
+const test = (name, callback) => nodeTest(name, async (context) => {
+    if (!databaseAvailable) {
+        context.skip(databaseSkipReason || "Database test tidak tersedia");
+        return;
+    }
+
+    return callback(context);
+});
 
 // Membaca data dari beberapa kemungkinan bentuk envelope respons API.
 const getPayload = (body) => body?.data ?? body?.result ?? body;
@@ -142,7 +152,7 @@ const assertNoPasswordHash = (value) => {
 };
 
 describe("Integration test saldo awal pengguna", () => {
-    before(async (t) => {
+    before(async () => {
         // Pemeriksaan database dilakukan sebelum server menerima request test.
         try {
             const result = await pool.query(
@@ -184,7 +194,7 @@ describe("Integration test saldo awal pengguna", () => {
                 throw error;
             }
 
-            t.skip(`Database test tidak dapat diakses: ${error.message}`);
+            databaseSkipReason = `Database test tidak dapat diakses: ${error.message}`;
             return;
         }
 
@@ -275,6 +285,21 @@ describe("Integration test saldo awal pengguna", () => {
         assert.equal(databaseResult.rows[0].current_balance, "1500000.50");
         assert.equal(databaseResult.rows[0].initial_balance, "1500000.50");
         assert.ok(databaseResult.rows[0].initial_balance_set_at);
+    });
+
+    test("saldo awal mempertahankan dampak transaksi yang sudah tercatat", async () => {
+        const { token } = await createLoggedInUser("ledger_before_balance");
+        const transaction = await request("/api/transactions", {
+            method: "POST",
+            headers: authHeaders(token),
+            body: JSON.stringify({ type: "INCOME", amount: "25000.00" })
+        });
+
+        assert.equal(transaction.status, 201);
+
+        const balanceResponse = await setBalance(token, "100000.00");
+        assert.equal(balanceResponse.status, 200);
+        assert.equal(getUser(balanceResponse.body).current_balance, "125000.00");
     });
 
     test("saldo awal hanya dapat diatur satu kali", async () => {

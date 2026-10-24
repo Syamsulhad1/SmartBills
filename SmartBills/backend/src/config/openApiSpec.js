@@ -18,7 +18,8 @@ const openApiSpec = {
         { name: "Authentication" },
         { name: "Users" },
         { name: "Categories" },
-        { name: "Transactions" }
+        { name: "Transactions" },
+        { name: "Analytics" }
     ],
 
     components: {
@@ -685,6 +686,93 @@ const openApiSpec = {
                     404: {
                         description:
                             "Receipt not found or not owned by this user"
+                    }
+                }
+            }
+        },
+
+        "/api/analytics": {
+            get: {
+                tags: ["Analytics"],
+                summary: "Get financial analytics for a calendar period",
+                description:
+                    "Returns current balance, full-period cash-flow totals, trend buckets, and expense totals by category.",
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: "period",
+                        in: "query",
+                        required: false,
+                        schema: {
+                            type: "string",
+                            enum: ["daily", "weekly", "monthly"],
+                            default: "monthly"
+                        }
+                    }
+                ],
+                responses: {
+                    200: {
+                        description: "Analytics overview for the authenticated user"
+                    },
+                    400: {
+                        description: "Unsupported analytics period"
+                    },
+                    401: {
+                        description: "Authentication required"
+                    }
+                }
+            }
+        },
+
+        "/api/analytics/receipts": {
+            get: {
+                tags: ["Analytics"],
+                summary: "List private receipt gallery entries",
+                description:
+                    "Returns receipt metadata for the authenticated user. Fetch each image from its protected transaction receipt endpoint.",
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: "period",
+                        in: "query",
+                        required: false,
+                        schema: {
+                            type: "string",
+                            enum: ["daily", "weekly", "monthly"],
+                            default: "monthly"
+                        }
+                    },
+                    {
+                        name: "limit",
+                        in: "query",
+                        required: false,
+                        schema: {
+                            type: "integer",
+                            minimum: 1,
+                            maximum: 100,
+                            default: 12
+                        }
+                    },
+                    {
+                        name: "offset",
+                        in: "query",
+                        required: false,
+                        schema: {
+                            type: "integer",
+                            minimum: 0,
+                            default: 0
+                        }
+                    }
+                ],
+                responses: {
+                    200: {
+                        description: "Paginated private receipt metadata"
+                    },
+                    400: {
+                        description: "Invalid period or pagination"
+                    },
+                    401: {
+                        description: "Authentication required"
                     }
                 }
             }

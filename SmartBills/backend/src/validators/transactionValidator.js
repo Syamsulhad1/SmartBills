@@ -1,3 +1,4 @@
+
 const parseAmount = (value, fieldName, { required = true } = {}) => {
     if ((value === undefined || value === null || value === "") && !required) {
         return null;
@@ -7,12 +8,15 @@ const parseAmount = (value, fieldName, { required = true } = {}) => {
         (typeof value !== "string" && typeof value !== "number")
         || !/^\d{1,13}(?:\.\d{1,2})?$/.test(String(value))
     ) {
-        const error = new Error(`${fieldName} must be a positive amount with up to 2 decimal places`);
+        const error = new Error(
+            `${fieldName} must be a positive amount with up to 2 decimal places`
+        );
         error.statusCode = 400;
         throw error;
     }
 
     const amount = Number(value);
+
     if (!Number.isFinite(amount) || (required && amount <= 0)) {
         const error = new Error(`${fieldName} must be a positive amount`);
         error.statusCode = 400;
@@ -28,6 +32,7 @@ const parseItems = (value) => {
     }
 
     let items = value;
+
     if (typeof value === "string") {
         try {
             items = JSON.parse(value);
@@ -48,11 +53,19 @@ const parseItems = (value) => {
         const itemName = item?.itemName ?? item?.item_name;
         const quantity = Number(item?.quantity ?? 1);
         const unitValue = item?.unitPrice ?? item?.unit_price;
-        const unitPrice = parseAmount(unitValue, `items[${index}].unitPrice`, { required: false });
+        const unitPrice = parseAmount(
+            unitValue,
+            `items[${index}].unitPrice`,
+            { required: false }
+        );
         const totalValue = item?.totalPrice ?? item?.total_price;
-        const totalPrice = totalValue === undefined || totalValue === null || totalValue === ""
-            ? (unitPrice === null ? null : Number((unitPrice * quantity).toFixed(2)))
-            : parseAmount(totalValue, `items[${index}].totalPrice`);
+
+        const totalPrice =
+            totalValue === undefined || totalValue === null || totalValue === ""
+                ? (unitPrice === null
+                    ? null
+                    : Number((unitPrice * quantity).toFixed(2)))
+                : parseAmount(totalValue, `items[${index}].totalPrice`);
 
         if (
             typeof itemName !== "string"
@@ -63,7 +76,9 @@ const parseItems = (value) => {
             || quantity > 2147483647
             || totalPrice === null
         ) {
-            const error = new Error(`items[${index}] must have a name, positive quantity, and total price`);
+            const error = new Error(
+                `items[${index}] must have a name, positive quantity, and total price`
+            );
             error.statusCode = 400;
             throw error;
         }
@@ -78,7 +93,10 @@ const parseItems = (value) => {
 };
 
 const validateCreateTransaction = (body) => {
-    const type = typeof body.type === "string" ? body.type.toUpperCase() : "";
+    const type = typeof body.type === "string"
+        ? body.type.toUpperCase()
+        : "";
+
     if (!["INCOME", "EXPENSE"].includes(type)) {
         const error = new Error("type must be INCOME or EXPENSE");
         error.statusCode = 400;
@@ -87,11 +105,18 @@ const validateCreateTransaction = (body) => {
 
     const amount = parseAmount(body.amount, "amount");
     const categoryValue = body.categoryId ?? body.category_id;
-    const categoryId = categoryValue === undefined || categoryValue === null || categoryValue === ""
-        ? null
-        : Number(categoryValue);
 
-    if (categoryId !== null && (!Number.isSafeInteger(categoryId) || categoryId <= 0)) {
+    const categoryId =
+        categoryValue === undefined
+        || categoryValue === null
+        || categoryValue === ""
+            ? null
+            : Number(categoryValue);
+
+    if (
+        categoryId !== null
+        && (!Number.isSafeInteger(categoryId) || categoryId <= 0)
+    ) {
         const error = new Error("categoryId must be a positive integer");
         error.statusCode = 400;
         throw error;
@@ -99,6 +124,7 @@ const validateCreateTransaction = (body) => {
 
     const merchantName = body.merchantName ?? body.merchant_name ?? null;
     const notes = body.notes ?? null;
+
     if (
         merchantName !== null
         && (typeof merchantName !== "string" || merchantName.length > 100)
@@ -116,6 +142,7 @@ const validateCreateTransaction = (body) => {
 
     const dateValue = body.transactionDate ?? body.transaction_date;
     const transactionDate = dateValue ? new Date(dateValue) : new Date();
+
     if (Number.isNaN(transactionDate.getTime())) {
         const error = new Error("transactionDate must be a valid date");
         error.statusCode = 400;
@@ -152,7 +179,34 @@ const parsePagination = (query) => {
     return { limit, offset };
 };
 
+// Validasi ID transaksi dari parameter URL.
+const parseTransactionId = (value) => {
+    if (
+        typeof value !== "string"
+        || !/^[1-9]\d*$/.test(value)
+    ) {
+        const error = new Error(
+            "transactionId must be a positive integer"
+        );
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const transactionId = Number(value);
+
+    if (!Number.isSafeInteger(transactionId)) {
+        const error = new Error(
+            "transactionId must be a positive safe integer"
+        );
+        error.statusCode = 400;
+        throw error;
+    }
+
+    return transactionId;
+};
+
 module.exports = {
     validateCreateTransaction,
-    parsePagination
+    parsePagination,
+    parseTransactionId
 };

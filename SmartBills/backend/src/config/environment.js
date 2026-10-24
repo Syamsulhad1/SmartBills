@@ -2,9 +2,8 @@
 const path = require("node:path");
 const dotenv = require("dotenv");
 
-const envFile = process.env.NODE_ENV === "test"
-    ? ".env.test"
-    : ".env";
+const envFile =
+    process.env.NODE_ENV === "test" ? ".env.test" : ".env";
 
 dotenv.config({
     path: path.resolve(process.cwd(), envFile)
@@ -16,9 +15,14 @@ const parseNumber = (value, fallback) => {
     }
 
     const parsed = Number(value);
-
     return Number.isNaN(parsed) ? fallback : parsed;
 };
+
+const clientUrl =
+    process.env.CLIENT_URL || "http://localhost:5173";
+
+const corsOrigin =
+    process.env.CORS_ORIGIN || clientUrl;
 
 const config = {
     PORT: parseNumber(process.env.PORT, 5000),
@@ -35,8 +39,9 @@ const config = {
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "1d",
     BCRYPT_SALT_ROUNDS: parseNumber(process.env.BCRYPT_SALT_ROUNDS, 10),
 
-    CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
-    CORS_ORIGIN: process.env.CORS_ORIGIN || process.env.CLIENT_URL || "http://localhost:3000",
+    CLIENT_URL: clientUrl,
+    CORS_ORIGIN: corsOrigin,
+
     UPLOAD_DIR: process.env.UPLOAD_DIR || "uploads",
 
     AI_API_KEY: process.env.AI_API_KEY,
