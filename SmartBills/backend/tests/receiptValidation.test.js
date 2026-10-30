@@ -50,6 +50,23 @@ test("validates transaction fields and calculates item totals", () => {
         () => validateCreateTransaction({ type: "TRANSFER", amount: "10" }),
         { statusCode: 400 }
     );
+    assert.throws(
+        () => validateCreateTransaction(
+            { type: "EXPENSE", amount: "10" },
+            "INCOME"
+        ),
+        {
+            statusCode: 400,
+            message: "This endpoint only accepts income transactions"
+        }
+    );
+    assert.equal(
+        validateCreateTransaction(
+            { type: "INCOME", amount: "10" },
+            "INCOME"
+        ).type,
+        "INCOME"
+    );
 });
 
 test("validates gallery pagination bounds", () => {

@@ -46,12 +46,12 @@ const listTransactions = async (req, res) => {
     );
 };
 
-const createTransaction = async (req, res) => {
+const createTransaction = async (req, res, expectedType = null) => {
     const receiptFilename = req.file?.filename ?? null;
     let transaction;
 
     try {
-        const input = validateCreateTransaction(req.body);
+        const input = validateCreateTransaction(req.body, expectedType);
         if (req.file) {
             const buffer = await fs.promises.readFile(req.file.path);
             validateReceiptBuffer(buffer, req.file.mimetype);
@@ -91,6 +91,14 @@ const createTransaction = async (req, res) => {
         201
     );
 };
+
+const createIncomeTransaction = (req, res) => (
+    createTransaction(req, res, "INCOME")
+);
+
+const createExpenseTransaction = (req, res) => (
+    createTransaction(req, res, "EXPENSE")
+);
 
 const getTransactionReceipt = async (req, res) => {
     const transactionId = Number(req.params.transactionId);
@@ -159,12 +167,12 @@ const getTransactionDetails = async (req, res) => {
     }, "Transaction retrieved");
 };
 
-const updateTransaction = async (req, res) => {
+const updateTransaction = async (req, res, expectedType = null) => {
     const transactionId = parseTransactionId(
         req.params.transactionId
     );
 
-    const input = validateCreateTransaction(req.body);
+    const input = validateCreateTransaction(req.body, expectedType);
 
     const transaction = await updateTransactionWithItems({
         transactionId,
@@ -181,6 +189,14 @@ const updateTransaction = async (req, res) => {
         "Transaction updated"
     );
 };
+
+const updateIncomeTransaction = (req, res) => (
+    updateTransaction(req, res, "INCOME")
+);
+
+const updateExpenseTransaction = (req, res) => (
+    updateTransaction(req, res, "EXPENSE")
+);
 
 
 const deleteTransactionHandler = async (req, res) => {
@@ -223,8 +239,12 @@ const deleteTransactionHandler = async (req, res) => {
 module.exports = {
     listTransactions,
     createTransaction,
+    createIncomeTransaction,
+    createExpenseTransaction,
     getTransactionReceipt,
     getTransactionDetails,
     updateTransaction,
+    updateIncomeTransaction,
+    updateExpenseTransaction,
     deleteTransactionHandler
 };

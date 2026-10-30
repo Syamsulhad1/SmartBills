@@ -28,7 +28,8 @@ default. Restart Vite setelah mengubah `.env`.
 - Login dan registrasi JWT.
 - Dashboard dari `GET /api/analytics?period=monthly`.
 - Profil serta penetapan saldo awal satu kali.
-- Daftar, tambah, dan hapus transaksi; upload bukti privat.
+- Halaman pemasukan dan pengeluaran terpisah untuk melihat, menambah,
+  mengubah, dan menghapus transaksi sesuai jenis; upload bukti privat.
 - OCR gambar lokal melalui `POST /api/ai/ocr`, dilanjutkan parsing draft Gemini
   melalui `POST /api/ai/parse-transaction`.
 

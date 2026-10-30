@@ -210,16 +210,23 @@ Semua endpoint transaksi memerlukan header Authorization dengan JWT login.
 
 ### Upload Transaksi Dan Bukti
 
-`POST /api/transactions` menerima `multipart/form-data`. Field `receipt` bersifat
-opsional; `type` dan `amount` wajib. Field opsional: `categoryId`, `merchantName`,
-`notes`, `transactionDate`, dan `items` (JSON array). Setiap item berisi
-`itemName`, `quantity`, `unitPrice`, dan `totalPrice`; `totalPrice` boleh
-dihitung dari `quantity * unitPrice`.
+Endpoint berikut menerima `multipart/form-data` dan memerlukan JWT:
+
+- `POST /api/transactions/income` hanya menyimpan pemasukan (`type=INCOME`).
+- `POST /api/transactions/expense` hanya menyimpan pengeluaran (`type=EXPENSE`).
+- `POST /api/transactions` tetap tersedia untuk kompatibilitas dan menerima
+  kedua jenis transaksi.
+
+Field `receipt` bersifat opsional; `type` dan `amount` wajib. Field opsional:
+`categoryId`, `merchantName`, `notes`, `transactionDate`, dan `items` (JSON
+array). Setiap item berisi `itemName`, `quantity`, `unitPrice`, dan `totalPrice`;
+`totalPrice` boleh dihitung dari `quantity * unitPrice`. Endpoint khusus akan
+menolak `type` yang tidak sesuai dengan URL.
 
 Contoh:
 
 ```bash
-curl -X POST http://localhost:5000/api/transactions \
+curl -X POST http://localhost:5000/api/transactions/expense \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -F "type=EXPENSE" \
   -F "amount=45000" \
@@ -237,6 +244,14 @@ Jika validasi atau penyimpanan database gagal, file unggahan dibersihkan.
   pengguna yang login dan `receipt_url` untuk transaksi dengan bukti.
 - `GET /api/transactions/:transactionId` mengembalikan detail transaksi beserta
   item.
+- `PUT /api/transactions/income/:transactionId` hanya memperbarui transaksi
+  pemasukan (`type=INCOME`).
+- `PUT /api/transactions/expense/:transactionId` hanya memperbarui transaksi
+  pengeluaran (`type=EXPENSE`).
+- `PUT /api/transactions/:transactionId` memperbarui transaksi dan daftar item
+  menggunakan body JSON dan tetap tersedia untuk kompatibilitas.
+- `DELETE /api/transactions/:transactionId` menghapus transaksi dan
+  membalikkan dampaknya pada saldo.
 - `GET /api/transactions/:transactionId/receipt` mengirim gambar privat setelah
   memverifikasi JWT dan kepemilikan transaksi.
 

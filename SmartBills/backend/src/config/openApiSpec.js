@@ -1,3 +1,190 @@
+const createTransactionOperation = (type) => ({
+    tags: ["Transactions"],
+    summary: `Create an ${type.toLowerCase()} transaction`,
+    description:
+        `Creates only ${type.toLowerCase()} transactions. Receipt must be JPEG, PNG, or WebP and no larger than 5 MB. Items is a JSON string containing an array.`,
+    security: [{ bearerAuth: [] }],
+    requestBody: {
+        required: true,
+        content: {
+            "multipart/form-data": {
+                schema: {
+                    type: "object",
+                    required: ["type", "amount"],
+                    properties: {
+                        type: {
+                            type: "string",
+                            enum: [type],
+                            example: type
+                        },
+                        amount: {
+                            type: "number",
+                            exclusiveMinimum: 0,
+                            example: 45000
+                        },
+                        categoryId: {
+                            type: "integer",
+                            nullable: true
+                        },
+                        merchantName: {
+                            type: "string",
+                            maxLength: 100
+                        },
+                        notes: {
+                            type: "string"
+                        },
+                        transactionDate: {
+                            type: "string",
+                            format: "date-time"
+                        },
+                        items: {
+                            type: "string",
+                            example:
+                                '[{"itemName":"Beras","quantity":1,"unitPrice":45000}]'
+                        },
+                        receipt: {
+                            type: "string",
+                            format: "binary",
+                            description:
+                                "Optional JPEG, PNG, or WebP image; maximum 5 MB."
+                        }
+                    }
+                }
+            }
+        }
+    },
+    responses: {
+        201: {
+            description: "Transaction and optional receipt created"
+        },
+        400: {
+            description: "Invalid transaction data or unsupported image"
+        },
+        401: {
+            description: "Authentication required"
+        },
+        413: {
+            description: "Receipt exceeds the 5 MB size limit"
+        }
+    }
+});
+
+const updateTransactionOperation = (type) => ({
+    tags: ["Transactions"],
+    summary: `Update an ${type.toLowerCase()} transaction`,
+    description:
+        `Updates only ${type.toLowerCase()} transactions. The transaction must belong to the authenticated user. Updates that would make the balance negative are rejected.`,
+    security: [{ bearerAuth: [] }],
+    parameters: [
+        {
+            name: "transactionId",
+            in: "path",
+            required: true,
+            schema: {
+                type: "integer",
+                minimum: 1
+            }
+        }
+    ],
+    requestBody: {
+        required: true,
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    required: ["type", "amount"],
+                    properties: {
+                        type: {
+                            type: "string",
+                            enum: [type],
+                            example: type
+                        },
+                        amount: {
+                            type: "number",
+                            exclusiveMinimum: 0,
+                            example: 120000
+                        },
+                        categoryId: {
+                            type: "integer",
+                            nullable: true,
+                            example: 3
+                        },
+                        merchantName: {
+                            type: "string",
+                            nullable: true,
+                            maxLength: 100,
+                            example: `Tes ${type === "INCOME" ? "pemasukan" : "pengeluaran"} diubah`
+                        },
+                        notes: {
+                            type: "string",
+                            nullable: true,
+                            example: "Uji pembaruan transaksi"
+                        },
+                        transactionDate: {
+                            type: "string",
+                            format: "date",
+                            example: "2026-10-30"
+                        },
+                        items: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                required: ["itemName", "quantity"],
+                                properties: {
+                                    itemName: {
+                                        type: "string",
+                                        example: "Beras"
+                                    },
+                                    quantity: {
+                                        type: "integer",
+                                        minimum: 1,
+                                        example: 1
+                                    },
+                                    unitPrice: {
+                                        type: "number",
+                                        minimum: 0,
+                                        nullable: true,
+                                        example: 120000
+                                    },
+                                    totalPrice: {
+                                        type: "number",
+                                        minimum: 0,
+                                        nullable: true,
+                                        example: 120000
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    example: {
+                        type,
+                        amount: 120000,
+                        categoryId: 3,
+                        merchantName: `Tes ${type === "INCOME" ? "pemasukan" : "pengeluaran"} diubah`,
+                        notes: "Uji pembaruan transaksi",
+                        transactionDate: "2026-10-30",
+                        items: []
+                    }
+                }
+            }
+        }
+    },
+    responses: {
+        200: {
+            description: "Transaction updated"
+        },
+        400: {
+            description:
+                "Invalid transaction data, transaction type mismatch, or update would make the balance negative"
+        },
+        401: {
+            description: "Authentication required"
+        },
+        404: {
+            description: "Transaction not found"
+        }
+    }
+});
 
 const openApiSpec = {
     openapi: "3.0.3",
@@ -605,6 +792,22 @@ const openApiSpec = {
             }
         },
 
+        "/api/transactions/income": {
+            post: createTransactionOperation("INCOME")
+        },
+
+        "/api/transactions/expense": {
+            post: createTransactionOperation("EXPENSE")
+        },
+
+        "/api/transactions/income/{transactionId}": {
+            put: updateTransactionOperation("INCOME")
+        },
+
+        "/api/transactions/expense/{transactionId}": {
+            put: updateTransactionOperation("EXPENSE")
+        },
+
         "/api/transactions/{transactionId}": {
             get: {
                 tags: ["Transactions"],
@@ -627,6 +830,178 @@ const openApiSpec = {
                     200: {
                         description:
                             "Transaction belonging to the authenticated user"
+                    },
+                    401: {
+                        description: "Authentication required"
+                    },
+                    404: {
+                        description: "Transaction not found"
+                    }
+                }
+            },
+
+            put: {
+                tags: ["Transactions"],
+                summary: "Update a transaction and its items",
+                description:
+                    "Replaces the transaction fields and item list. The transaction must belong to the authenticated user. Updates that would make the balance negative are rejected.",
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: "transactionId",
+                        in: "path",
+                        required: true,
+                        schema: {
+                            type: "integer",
+                            minimum: 1
+                        }
+                    }
+                ],
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                type: "object",
+                                required: ["type", "amount"],
+                                properties: {
+                                    type: {
+                                        type: "string",
+                                        enum: ["INCOME", "EXPENSE"]
+                                    },
+                                    amount: {
+                                        type: "number",
+                                        exclusiveMinimum: 0,
+                                        example: 120000
+                                    },
+                                    categoryId: {
+                                        type: "integer",
+                                        nullable: true,
+                                        example: 3
+                                    },
+                                    merchantName: {
+                                        type: "string",
+                                        nullable: true,
+                                        maxLength: 100,
+                                        example: "Tes pemasukan diubah"
+                                    },
+                                    notes: {
+                                        type: "string",
+                                        nullable: true,
+                                        example: "Uji pembaruan transaksi"
+                                    },
+                                    transactionDate: {
+                                        type: "string",
+                                        format: "date",
+                                        example: "2026-10-30"
+                                    },
+                                    items: {
+                                        type: "array",
+                                        items: {
+                                            type: "object",
+                                            required: ["itemName", "quantity"],
+                                            properties: {
+                                                itemName: {
+                                                    type: "string",
+                                                    example: "Beras"
+                                                },
+                                                quantity: {
+                                                    type: "integer",
+                                                    minimum: 1,
+                                                    example: 1
+                                                },
+                                                unitPrice: {
+                                                    type: "number",
+                                                    minimum: 0,
+                                                    nullable: true,
+                                                    example: 120000
+                                                },
+                                                totalPrice: {
+                                                    type: "number",
+                                                    minimum: 0,
+                                                    nullable: true,
+                                                    example: 120000
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                example: {
+                                    type: "INCOME",
+                                    amount: 120000,
+                                    categoryId: 3,
+                                    merchantName: "Tes pemasukan diubah",
+                                    notes: "Uji pembaruan transaksi",
+                                    transactionDate: "2026-10-30",
+                                    items: []
+                                }
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    200: {
+                        description: "Transaction updated"
+                    },
+                    400: {
+                        description:
+                            "Invalid transaction data or update would make the balance negative"
+                    },
+                    401: {
+                        description: "Authentication required"
+                    },
+                    404: {
+                        description: "Transaction not found"
+                    }
+                }
+            },
+
+            delete: {
+                tags: ["Transactions"],
+                summary: "Delete a transaction",
+                description:
+                    "Deletes the transaction belonging to the authenticated user and reverses its effect on the current balance.",
+                security: [{ bearerAuth: [] }],
+                parameters: [
+                    {
+                        name: "transactionId",
+                        in: "path",
+                        required: true,
+                        schema: {
+                            type: "integer",
+                            minimum: 1
+                        }
+                    }
+                ],
+                responses: {
+                    200: {
+                        description: "Transaction deleted",
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: "object",
+                                    properties: {
+                                        success: {
+                                            type: "boolean",
+                                            example: true
+                                        },
+                                        message: {
+                                            type: "string",
+                                            example: "Transaction deleted"
+                                        },
+                                        data: {
+                                            type: "object",
+                                            properties: {
+                                                transaction_id: {
+                                                    type: "integer",
+                                                    example: 11
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     401: {
                         description: "Authentication required"

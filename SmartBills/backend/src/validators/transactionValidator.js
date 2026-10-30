@@ -92,13 +92,21 @@ const parseItems = (value) => {
     });
 };
 
-const validateCreateTransaction = (body) => {
+const validateCreateTransaction = (body, expectedType = null) => {
     const type = typeof body.type === "string"
         ? body.type.toUpperCase()
         : "";
 
     if (!["INCOME", "EXPENSE"].includes(type)) {
         const error = new Error("type must be INCOME or EXPENSE");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (expectedType && type !== expectedType) {
+        const error = new Error(
+            `This endpoint only accepts ${expectedType.toLowerCase()} transactions`
+        );
         error.statusCode = 400;
         throw error;
     }

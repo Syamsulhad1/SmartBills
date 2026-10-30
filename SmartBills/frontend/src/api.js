@@ -58,11 +58,33 @@ export const api = {
     transactions: (token) => request("/transactions?limit=50&offset=0", {
         token
     }),
-    createTransaction: (token, formData) => request("/transactions", {
+    transaction: (token, id) => request(`/transactions/${id}`, { token }),
+    createIncomeTransaction: (token, formData) => request("/transactions/income", {
         token,
         method: "POST",
         body: formData
     }),
+    createExpenseTransaction: (token, formData) => request("/transactions/expense", {
+        token,
+        method: "POST",
+        body: formData
+    }),
+    updateIncomeTransaction: (token, id, transaction) => request(
+        `/transactions/income/${id}`,
+        {
+            token,
+            method: "PUT",
+            body: JSON.stringify(transaction)
+        }
+    ),
+    updateExpenseTransaction: (token, id, transaction) => request(
+        `/transactions/expense/${id}`,
+        {
+            token,
+            method: "PUT",
+            body: JSON.stringify(transaction)
+        }
+    ),
     deleteTransaction: (token, id) => request(`/transactions/${id}`, {
         token,
         method: "DELETE"

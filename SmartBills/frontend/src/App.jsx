@@ -13,7 +13,8 @@ const today = () => {
 const pagePaths = {
     dashboard: "/dashboard",
     summary: "/ringkasan",
-    transactions: "/transaksi",
+    income: "/pemasukan",
+    expense: "/pengeluaran",
     scanner: "/parsing-bukti",
     account: "/akun"
 };
@@ -459,7 +460,13 @@ function NewsSection({ title, description, icon, articles, loading, failed, empt
     );
 }
 
-function TransactionTable({ transactions, onDelete, onReceipt, loading = false }) {
+function TransactionTable({
+    transactions,
+    onDelete,
+    onEdit,
+    onReceipt,
+    loading = false
+}) {
     if (loading) {
         return (
             <div className="transaction-skeleton-list" role="status" aria-label="Memuat transaksi">
@@ -499,6 +506,17 @@ function TransactionTable({ transactions, onDelete, onReceipt, loading = false }
                                 {item.type === "INCOME" ? "+" : "-"}{money(item.amount)}
                             </td>
                             <td data-label="Aksi" className="text-end text-nowrap transaction-actions">
+                                {onEdit && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-light me-1"
+                                        aria-label={`Edit transaksi ${item.merchant_name || "transaksi"}`}
+                                        title="Edit transaksi"
+                                        onClick={() => onEdit(item.transaction_id)}
+                                    >
+                                        <i className="bi bi-pencil-square" />
+                                    </button>
+                                )}
                                 {item.receipt_url && (
                                     <button type="button" className="btn btn-sm btn-light me-1" aria-label={`Buka bukti ${item.merchant_name || "transaksi"}`} title="Buka bukti" onClick={() => onReceipt(item.transaction_id)}>
                                         <i className="bi bi-image" />
@@ -545,7 +563,8 @@ function TransactionForm({
     receiptFile,
     setReceiptFile,
     onSubmit,
-    busy
+    busy,
+    isEditing
 }) {
     const [amountFocused, setAmountFocused] = useState(false);
     const [receiptError, setReceiptError] = useState("");
@@ -588,13 +607,13 @@ function TransactionForm({
 
     return (
         <form onSubmit={onSubmit} className="form-grid">
-            <label className="form-label">
+            <div className="form-label">
                 Jenis transaksi
-                <select className="form-select" value={form.type} onChange={(event) => setForm({ ...form, type: event.target.value, categoryId: "" })}>
-                    <option value="EXPENSE">Pengeluaran</option>
-                    <option value="INCOME">Pemasukan</option>
-                </select>
-            </label>
+                <div className="form-control transaction-type-fixed" aria-label={`Jenis transaksi: ${form.type === "INCOME" ? "Pemasukan" : "Pengeluaran"}`}>
+                    <i className={`bi ${form.type === "INCOME" ? "bi-graph-up-arrow" : "bi-graph-down-arrow"}`} />
+                    {form.type === "INCOME" ? "Pemasukan" : "Pengeluaran"}
+                </div>
+            </div>
             <label className="form-label">
                 Nominal (Rp)
                 <input
@@ -629,6 +648,11 @@ function TransactionForm({
                 Catatan
                 <input className="form-control" value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
             </label>
+            {isEditing ? (
+                <p className="form-wide small text-secondary mb-0">
+                    Bukti transaksi yang sudah tersimpan tidak berubah saat mengedit.
+                </p>
+            ) : (
             <div className="form-wide">
                 <span className="form-label">Bukti transaksi (JPEG, PNG, WebP; maks. 5 MB)</span>
                 <span
@@ -673,6 +697,7 @@ function TransactionForm({
                 </span>
                 {receiptError && <span className="form-error" role="alert">{receiptError}</span>}
             </div>
+            )}
             <div className="form-wide">
                 <div className="d-flex justify-content-between align-items-center mb-2">
                     <span className="form-label mb-0">Rincian item (opsional)</span>
@@ -693,9 +718,11 @@ function TransactionForm({
             <div className="form-wide">
                 <button className="btn btn-primary" disabled={busy}>
                     {busy && <span className="button-spinner" aria-hidden="true" />}
-                    {busy ? (receiptFile ? "Mengunggah bukti dan menyimpan..." : "Menyimpan...") : "Tinjau dan simpan transaksi"}
+                    {busy
+                        ? (isEditing ? "Memperbarui transaksi..." : receiptFile ? "Mengunggah bukti dan menyimpan..." : "Menyimpan...")
+                        : isEditing ? "Simpan perubahan" : "Tinjau dan simpan transaksi"}
                 </button>
-                {busy && receiptFile && (
+                {!isEditing && busy && receiptFile && (
                     <div className="receipt-upload-status" role="status">
                         <span className="receipt-upload-track"><span /></span>
                         <span>Mengunggah bukti transaksi...</span>
@@ -734,6 +761,7 @@ export default function App() {
     const [newsStatus, setNewsStatus] = useState("loading");
     const [form, setForm] = useState(emptyForm);
     const [items, setItems] = useState([]);
+    const [editingTransactionId, setEditingTransactionId] = useState(null);
     const [ocrFile, setOcrFile] = useState(null);
     const [ocrFileError, setOcrFileError] = useState("");
     const [scanStatus, setScanStatus] = useState("");
@@ -750,6 +778,13 @@ export default function App() {
     const page = pathPages[currentPath];
     const setPage = (nextPage) => {
         const nextPath = pagePaths[nextPage];
+        if (nextPage === "income" || nextPage === "expense") {
+            const type = nextPage === "income" ? "INCOME" : "EXPENSE";
+            setForm((current) => current.type === type
+                ? current
+                : { ...current, type, categoryId: "" });
+            setTransactionCategoryFilter("");
+        }
         if (nextPath && nextPath !== currentPath) navigate(nextPath);
     };
     const closeDeleteModal = useCallback(() => setSelectedDeleteId(null), []);
@@ -873,6 +908,16 @@ export default function App() {
     }, [token, refresh]);
 
     useEffect(() => {
+        if (page === "income" || page === "expense") {
+            const type = page === "income" ? "INCOME" : "EXPENSE";
+            setForm((current) => current.type === type
+                ? current
+                : { ...current, type, categoryId: "" });
+            setTransactionCategoryFilter("");
+        }
+    }, [page]);
+
+    useEffect(() => {
         if (!token) return;
         let active = true;
         setNewsStatus("loading");
@@ -928,22 +973,40 @@ export default function App() {
         setError("");
         setNotice("");
         try {
-            const body = new FormData();
-            Object.entries(form).forEach(([key, value]) => {
-                if (value !== "") body.append(key, value);
-            });
-            if (validItems.length) body.append("items", JSON.stringify(validItems));
-            if (receiptFile) body.append("receipt", receiptFile);
-            await api.createTransaction(token, body);
+            if (editingTransactionId) {
+                const updateTransaction = form.type === "INCOME"
+                    ? api.updateIncomeTransaction
+                    : api.updateExpenseTransaction;
+                await updateTransaction(token, editingTransactionId, {
+                    ...form,
+                    amount: form.amount,
+                    categoryId: form.categoryId || null,
+                    items: validItems
+                });
+            } else {
+                const body = new FormData();
+                Object.entries(form).forEach(([key, value]) => {
+                    if (value !== "") body.append(key, value);
+                });
+                if (validItems.length) body.append("items", JSON.stringify(validItems));
+                if (receiptFile) body.append("receipt", receiptFile);
+                const createTransaction = form.type === "INCOME"
+                    ? api.createIncomeTransaction
+                    : api.createExpenseTransaction;
+                await createTransaction(token, body);
+            }
             setForm(emptyForm());
             setItems([]);
             setReceiptFile(null);
             setDraft(null);
             setOcrFile(null);
-            setPage("transactions");
+            setEditingTransactionId(null);
+            setPage(form.type === "INCOME" ? "income" : "expense");
             try {
                 await refresh(token);
-                setNotice("Transaksi tersimpan dan saldo diperbarui.");
+                setNotice(editingTransactionId
+                    ? "Perubahan transaksi tersimpan dan saldo diperbarui."
+                    : "Transaksi tersimpan dan saldo diperbarui.");
             } catch (refreshError) {
                 setError(`Transaksi tersimpan, tetapi ringkasan gagal diperbarui: ${refreshError.message}`);
             }
@@ -953,6 +1016,47 @@ export default function App() {
             transactionSubmitLockRef.current = false;
             setBusy(false);
         }
+    };
+
+    const editTransaction = async (transactionId) => {
+        setBusy(true);
+        setError("");
+        setNotice("");
+        try {
+            const transaction = await api.transaction(token, transactionId);
+            setEditingTransactionId(transaction.transaction_id);
+            setForm({
+                type: transaction.type,
+                amount: String(transaction.amount),
+                categoryId: transaction.category_id
+                    ? String(transaction.category_id)
+                    : "",
+                merchantName: transaction.merchant_name || "",
+                notes: transaction.notes || "",
+                transactionDate: String(transaction.transaction_date).slice(0, 10)
+            });
+            setItems((transaction.items || []).map((item) => createItem({
+                itemName: item.item_name,
+                quantity: item.quantity,
+                unitPrice: item.unit_price ?? "",
+                totalPrice: item.total_price ?? ""
+            })));
+            setReceiptFile(null);
+            setDraft(null);
+            setPage(transaction.type === "INCOME" ? "income" : "expense");
+        } catch (editError) {
+            setError(editError.message);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const cancelTransactionEdit = () => {
+        setEditingTransactionId(null);
+        setForm(emptyForm());
+        setItems([]);
+        setReceiptFile(null);
+        setDraft(null);
     };
 
     const applyDraftValues = (parsedDraft, attachedReceipt) => {
@@ -977,7 +1081,7 @@ export default function App() {
         setNotice(parsedDraft.status === "ready_for_review"
             ? "Struk berhasil dibaca. Periksa transaksi dan bukti sebelum menyimpan."
             : "Struk berhasil diproses. Lengkapi data yang perlu diperiksa sebelum menyimpan.");
-        setPage("transactions");
+        setPage(value.type === "INCOME" ? "income" : "expense");
     };
 
     const processReceipt = async (file) => {
@@ -1174,6 +1278,13 @@ export default function App() {
         transactionMonth,
         transactionSort
     ]);
+    const transactionType = page === "income" ? "INCOME" : "EXPENSE";
+    const pageTransactions = filteredTransactions.filter(
+        (item) => item.type === transactionType
+    );
+    const pageCategories = categories.filter(
+        (category) => category.type === transactionType
+    );
 
     if (!token) {
         return currentPath === "/login"
@@ -1182,6 +1293,9 @@ export default function App() {
     }
     if (currentPath === "/" || currentPath === "/login") {
         return <Navigate to={pagePaths.dashboard} replace />;
+    }
+    if (currentPath === "/transaksi") {
+        return <Navigate to={pagePaths.expense} replace />;
     }
     if (!page) return <Navigate to={pagePaths.dashboard} replace />;
 
@@ -1212,7 +1326,8 @@ export default function App() {
                     {[
                         ["dashboard", "grid-1x2", "Dashboard"],
                         ["summary", "bar-chart-line", "Ringkasan"],
-                        ["transactions", "arrow-left-right", "Transaksi"],
+                        ["income", "graph-up-arrow", "Pemasukan"],
+                        ["expense", "graph-down-arrow", "Pengeluaran"],
                         ["scanner", "scan", "Parsing bukti"],
                         ["account", "person", "Akun"]
                     ].map(([id, icon, label]) => (
@@ -1251,7 +1366,7 @@ export default function App() {
                         >
                             <i className={`bi ${mobileMenuOpen ? "bi-x-lg" : "bi-list"}`} />
                         </button>
-                        <div><span className="eyebrow">KEUANGAN PRIBADI</span><h1>{({ dashboard: "Dashboard", summary: "Ringkasan", transactions: "Transaksi", scanner: "Parsing bukti", account: "Akun saya" })[page]}</h1></div>
+                        <div><span className="eyebrow">KEUANGAN PRIBADI</span><h1>{({ dashboard: "Dashboard", summary: "Ringkasan", income: "Pemasukan", expense: "Pengeluaran", scanner: "Parsing bukti", account: "Akun saya" })[page]}</h1></div>
                     </div>
                     <div className="topbar-user"><span className="avatar">{user?.name?.[0]?.toUpperCase() || "S"}</span><span>{user?.name}</span></div>
                 </header>
@@ -1358,7 +1473,10 @@ export default function App() {
                                 <>
                             <div className="welcome-row">
                                 <div><h2>Halo, {user?.name?.split(" ")[0] || "teman"} 👋</h2><p className="muted">Berikut ringkasan aktivitas keuangan Anda.</p></div>
-                                <button className="btn btn-primary" onClick={() => { setForm(emptyForm()); setItems([]); setPage("transactions"); }}><i className="bi bi-plus-lg me-2" />Tambah transaksi</button>
+                                <div className="d-flex flex-wrap gap-2">
+                                    <button className="btn btn-outline-primary" onClick={() => { setForm({ ...emptyForm(), type: "INCOME" }); setItems([]); setPage("income"); }}><i className="bi bi-plus-lg me-2" />Tambah pemasukan</button>
+                                    <button className="btn btn-primary" onClick={() => { setForm(emptyForm()); setItems([]); setPage("expense"); }}><i className="bi bi-plus-lg me-2" />Tambah pengeluaran</button>
+                                </div>
                             </div>
                             {!user?.has_initial_balance && (
                                 <div className="setup-banner"><i className="bi bi-info-circle" /><span>Atur saldo awal di halaman Akun untuk mulai memantau saldo.</span><button className="btn btn-sm btn-outline-primary ms-auto" onClick={() => setPage("account")}>Atur saldo</button></div>
@@ -1405,9 +1523,15 @@ export default function App() {
                                 </div>
                             </div>
                             <div className="dashboard-lower">
-                                <div className="content-card">
-                                    <div className="card-heading"><div><h3>Transaksi terbaru</h3><p>Aktivitas keuangan terakhir Anda</p></div><button className="btn btn-sm btn-outline-secondary" onClick={() => setPage("transactions")}>Lihat semua</button></div>
-                                    <TransactionTable transactions={visibleTransactions.slice(0, 5)} onDelete={setSelectedDeleteId} onReceipt={openReceipt} />
+                                <div className="dashboard-transaction-lists">
+                                    <div className="content-card">
+                                        <div className="card-heading"><div><h3>Pemasukan terbaru</h3><p>Riwayat uang masuk</p></div><button className="btn btn-sm btn-outline-secondary" onClick={() => setPage("income")}>Lihat semua</button></div>
+                                        <TransactionTable transactions={visibleTransactions.filter((item) => item.type === "INCOME").slice(0, 5)} onDelete={setSelectedDeleteId} onEdit={editTransaction} onReceipt={openReceipt} />
+                                    </div>
+                                    <div className="content-card">
+                                        <div className="card-heading"><div><h3>Pengeluaran terbaru</h3><p>Riwayat uang keluar</p></div><button className="btn btn-sm btn-outline-secondary" onClick={() => setPage("expense")}>Lihat semua</button></div>
+                                        <TransactionTable transactions={visibleTransactions.filter((item) => item.type === "EXPENSE").slice(0, 5)} onDelete={setSelectedDeleteId} onEdit={editTransaction} onReceipt={openReceipt} />
+                                    </div>
                                 </div>
                                 <div className="dashboard-tools">
                                     <div className="privacy-card">
@@ -1421,11 +1545,11 @@ export default function App() {
                         </>
                     )}
 
-                    {page === "transactions" && (
+                    {(page === "income" || page === "expense") && (
                         <div className="transactions-layout">
                             <div className="content-card transaction-list-card">
                                 <div className="card-heading">
-                                    <div><h3>Semua transaksi</h3><p>{filteredTransactions.length} dari {visibleTransactions.length} transaksi terbaru</p></div>
+                                    <div><h3>Riwayat {page === "income" ? "pemasukan" : "pengeluaran"}</h3><p>{pageTransactions.length} transaksi ditemukan</p></div>
                                 </div>
                                 <div className="transaction-filters">
                                     <label className="transaction-search">
@@ -1449,7 +1573,7 @@ export default function App() {
                                         >
                                             <option value="">Semua kategori</option>
                                             <option value="uncategorized">Tanpa kategori</option>
-                                            {categories.map((category) => (
+                                            {pageCategories.map((category) => (
                                                 <option key={category.category_id} value={String(category.category_id)}>{category.name}</option>
                                             ))}
                                         </select>
@@ -1498,8 +1622,8 @@ export default function App() {
                                             Coba lagi
                                         </button>
                                     </EmptyState>
-                                ) : filteredTransactions.length ? (
-                                    <TransactionTable transactions={filteredTransactions} onDelete={setSelectedDeleteId} onReceipt={openReceipt} />
+                                ) : pageTransactions.length ? (
+                                    <TransactionTable transactions={pageTransactions} onDelete={setSelectedDeleteId} onEdit={editTransaction} onReceipt={openReceipt} />
                                 ) : (
                                     <EmptyState
                                         icon="bi-search"
@@ -1509,7 +1633,7 @@ export default function App() {
                                 )}
                             </div>
                             <div className="content-card transaction-form-card">
-                                <div className="card-heading"><div><h3>Catat transaksi</h3><p>Data akan memperbarui saldo setelah disimpan.</p></div></div>
+                                <div className="card-heading"><div><h3>{editingTransactionId ? "Edit" : "Catat"} {page === "income" ? "pemasukan" : "pengeluaran"}</h3><p>Data akan memperbarui saldo setelah disimpan.</p></div></div>
                                 {draft && (
                                     <div className="alert alert-warning py-2 small" role="status">
                                         <strong>Draft AI berhasil diproses.</strong>{" "}
@@ -1533,7 +1657,18 @@ export default function App() {
                                     setReceiptFile={setReceiptFile}
                                     onSubmit={saveTransaction}
                                     busy={busy}
+                                    isEditing={Boolean(editingTransactionId)}
                                 />
+                                {editingTransactionId && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline-secondary mt-2"
+                                        onClick={cancelTransactionEdit}
+                                        disabled={busy}
+                                    >
+                                        Batal edit
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}
