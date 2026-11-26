@@ -115,7 +115,8 @@ const updateTransactionForUser = async ({
     amount,
     merchantName,
     notes,
-    transactionDate
+    transactionDate,
+    imageUrl = null
 }, db = pool) => {
     const query = `
         UPDATE transactions
@@ -125,7 +126,8 @@ const updateTransactionForUser = async ({
             amount = $5,
             merchant_name = $6,
             notes = $7,
-            transaction_date = $8
+            transaction_date = $8,
+            image_url = COALESCE($9, image_url)
         WHERE transaction_id = $1
           AND user_id = $2
         RETURNING ${transactionColumns};
@@ -139,7 +141,8 @@ const updateTransactionForUser = async ({
         amount,
         merchantName,
         notes,
-        transactionDate
+        transactionDate,
+        imageUrl
     ];
 
     const result = await db.query(query, values);

@@ -60,6 +60,7 @@ function AuthPage({ onLogin }) {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
     const [busy, setBusy] = useState(false);
     const submit = async (event) => {
         event.preventDefault();
@@ -69,9 +70,15 @@ function AuthPage({ onLogin }) {
         }
         setBusy(true);
         setError("");
+        setSuccess("");
         try {
             if (registering) {
                 await api.register(form);
+                setRegistering(false);
+                setForm((current) => ({ ...current, name: "", password: "" }));
+                setConfirmPassword("");
+                setSuccess("Registrasi berhasil. Silakan masuk dengan akun yang baru dibuat.");
+                return;
             }
             const result = await api.login({
                 email: form.email,
@@ -165,6 +172,7 @@ function AuthPage({ onLogin }) {
                                 : "Masuk untuk melanjutkan ke ringkasan keuanganmu."}
                         </p>
                         {error && <div className="auth-error" role="alert"><i className="bi bi-exclamation-circle-fill" />{error}</div>}
+                        {success && <div className="auth-success" role="status"><i className="bi bi-check-circle-fill" />{success}</div>}
                         <form onSubmit={submit} className="auth-form">
                             {registering && (
                                 <label className="auth-field">
@@ -230,7 +238,7 @@ function AuthPage({ onLogin }) {
                             )}
                             <button className="auth-submit" type="submit" disabled={busy}>
                                 {busy && <span className="button-spinner" aria-hidden="true" />}
-                                {busy ? "Memproses..." : registering ? "Buat akun dan masuk" : "Masuk"}
+                                {busy ? "Memproses..." : registering ? "Buat akun" : "Masuk"}
                                 {!busy && <i className="bi bi-arrow-right" />}
                             </button>
                         </form>
@@ -242,6 +250,7 @@ function AuthPage({ onLogin }) {
                                 onClick={() => {
                                     setRegistering(!registering);
                                     setError("");
+                                    setSuccess("");
                                 }}
                             >
                                 {registering ? "Masuk" : "Daftar gratis"}
@@ -464,9 +473,12 @@ function TransactionTable({
     transactions,
     onDelete,
     onEdit,
+    onDetails,
     onReceipt,
     loading = false
 }) {
+    const hasActions = onDetails || onEdit || onReceipt || onDelete;
+
     if (loading) {
         return (
             <div className="transaction-skeleton-list" role="status" aria-label="Memuat transaksi">
@@ -490,7 +502,7 @@ function TransactionTable({
                         <th>Tanggal</th>
                         <th>Kategori</th>
                         <th className="text-end">Nominal</th>
-                        <th />
+                        <th>{hasActions ? "Aksi" : ""}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -506,6 +518,17 @@ function TransactionTable({
                                 {item.type === "INCOME" ? "+" : "-"}{money(item.amount)}
                             </td>
                             <td data-label="Aksi" className="text-end text-nowrap transaction-actions">
+                                {onDetails && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-light me-1"
+                                        aria-label={`Lihat detail transaksi ${item.merchant_name || "transaksi"}`}
+                                        title="Lihat detail"
+                                        onClick={() => onDetails(item.transaction_id)}
+                                    >
+                                        <i className="bi bi-eye" />
+                                    </button>
+                                )}
                                 {onEdit && (
                                     <button
                                         type="button"
@@ -522,9 +545,17 @@ function TransactionTable({
                                         <i className="bi bi-image" />
                                     </button>
                                 )}
-                                <button type="button" className="btn btn-sm btn-light text-danger" aria-label={`Hapus transaksi ${item.merchant_name || "transaksi"}`} title="Hapus transaksi" onClick={() => onDelete(item.transaction_id)}>
-                                    <i className="bi bi-trash3" />
-                                </button>
+                                {onDelete && (
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-light text-danger"
+                                        aria-label={`Hapus transaksi ${item.merchant_name || "transaksi"}`}
+                                        title="Hapus transaksi"
+                                        onClick={() => onDelete(item.transaction_id)}
+                                    >
+                                        <i className="bi bi-trash3" />
+                                    </button>
+                                )}
                             </td>
                         </tr>
                     ))}
@@ -746,7 +777,10 @@ export default function App() {
     const scanFileInputRef = useRef(null);
     const transactionSubmitLockRef = useRef(false);
     const deleteTimersRef = useRef(new Map());
+    const transactionDetailRequestRef = useRef(0);
     const [selectedDeleteId, setSelectedDeleteId] = useState(null);
+    const [transactionConfirmation, setTransactionConfirmation] = useState(null);
+    const [transactionDetail, setTransactionDetail] = useState(null);
     const [pendingDeleteIds, setPendingDeleteIds] = useState(() => new Set());
     const [receiptFile, setReceiptFile] = useState(null);
     const [transactionSearch, setTransactionSearch] = useState("");
@@ -788,6 +822,10 @@ export default function App() {
         if (nextPath && nextPath !== currentPath) navigate(nextPath);
     };
     const closeDeleteModal = useCallback(() => setSelectedDeleteId(null), []);
+    const closeTransactionDetails = useCallback(() => {
+        transactionDetailRequestRef.current += 1;
+        setTransactionDetail(null);
+    }, []);
 
     useEffect(() => () => {
         deleteTimersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -953,9 +991,9 @@ export default function App() {
         navigate("/login", { replace: true });
     };
 
-    const saveTransaction = async (event) => {
+    const saveTransaction = (event) => {
         event.preventDefault();
-        if (transactionSubmitLockRef.current) return;
+        if (transactionSubmitLockRef.current || transactionConfirmation) return;
         const validItems = items
             .filter((item) => item.itemName.trim())
             .map((item) => ({
@@ -968,29 +1006,56 @@ export default function App() {
             setError("Isi harga satuan atau total untuk setiap item.");
             return;
         }
+        setError("");
+        setTransactionConfirmation({
+            form: { ...form },
+            items: validItems,
+            receiptFile,
+            editingTransactionId
+        });
+    };
+
+    const confirmSaveTransaction = async () => {
+        if (!transactionConfirmation || transactionSubmitLockRef.current) return;
+        const pending = transactionConfirmation;
         transactionSubmitLockRef.current = true;
+        setTransactionConfirmation(null);
         setBusy(true);
         setError("");
         setNotice("");
         try {
-            if (editingTransactionId) {
-                const updateTransaction = form.type === "INCOME"
+            if (pending.editingTransactionId) {
+                const updateTransaction = pending.form.type === "INCOME"
                     ? api.updateIncomeTransaction
                     : api.updateExpenseTransaction;
-                await updateTransaction(token, editingTransactionId, {
-                    ...form,
-                    amount: form.amount,
-                    categoryId: form.categoryId || null,
-                    items: validItems
-                });
+                const transaction = {
+                    ...pending.form,
+                    amount: pending.form.amount,
+                    categoryId: pending.form.categoryId || null,
+                    items: pending.items
+                };
+                if (pending.receiptFile) {
+                    const body = new FormData();
+                    Object.entries(transaction).forEach(([key, value]) => {
+                        if (key === "items") {
+                            if (value.length) body.append(key, JSON.stringify(value));
+                        } else if (value !== "") {
+                            body.append(key, value);
+                        }
+                    });
+                    body.append("receipt", pending.receiptFile);
+                    await updateTransaction(token, pending.editingTransactionId, body);
+                } else {
+                    await updateTransaction(token, pending.editingTransactionId, transaction);
+                }
             } else {
                 const body = new FormData();
-                Object.entries(form).forEach(([key, value]) => {
+                Object.entries(pending.form).forEach(([key, value]) => {
                     if (value !== "") body.append(key, value);
                 });
-                if (validItems.length) body.append("items", JSON.stringify(validItems));
-                if (receiptFile) body.append("receipt", receiptFile);
-                const createTransaction = form.type === "INCOME"
+                if (pending.items.length) body.append("items", JSON.stringify(pending.items));
+                if (pending.receiptFile) body.append("receipt", pending.receiptFile);
+                const createTransaction = pending.form.type === "INCOME"
                     ? api.createIncomeTransaction
                     : api.createExpenseTransaction;
                 await createTransaction(token, body);
@@ -1001,10 +1066,10 @@ export default function App() {
             setDraft(null);
             setOcrFile(null);
             setEditingTransactionId(null);
-            setPage(form.type === "INCOME" ? "income" : "expense");
+            setPage(pending.form.type === "INCOME" ? "income" : "expense");
             try {
                 await refresh(token);
-                setNotice(editingTransactionId
+                setNotice(pending.editingTransactionId
                     ? "Perubahan transaksi tersimpan dan saldo diperbarui."
                     : "Transaksi tersimpan dan saldo diperbarui.");
             } catch (refreshError) {
@@ -1208,6 +1273,22 @@ export default function App() {
         } catch (receiptError) {
             receiptWindow.close();
             setError(receiptError.message);
+        }
+    };
+
+    const showTransactionDetails = async (id) => {
+        const requestId = transactionDetailRequestRef.current + 1;
+        transactionDetailRequestRef.current = requestId;
+        setTransactionDetail({ id, status: "loading", transaction: null, error: "" });
+        try {
+            const transaction = await api.transaction(token, id);
+            if (transactionDetailRequestRef.current === requestId) {
+                setTransactionDetail({ id, status: "ready", transaction, error: "" });
+            }
+        } catch (detailError) {
+            if (transactionDetailRequestRef.current === requestId) {
+                setTransactionDetail({ id, status: "error", transaction: null, error: detailError.message });
+            }
         }
     };
 
@@ -1526,11 +1607,11 @@ export default function App() {
                                 <div className="dashboard-transaction-lists">
                                     <div className="content-card">
                                         <div className="card-heading"><div><h3>Pemasukan terbaru</h3><p>Riwayat uang masuk</p></div><button className="btn btn-sm btn-outline-secondary" onClick={() => setPage("income")}>Lihat semua</button></div>
-                                        <TransactionTable transactions={visibleTransactions.filter((item) => item.type === "INCOME").slice(0, 5)} onDelete={setSelectedDeleteId} onEdit={editTransaction} onReceipt={openReceipt} />
+                                        <TransactionTable transactions={visibleTransactions.filter((item) => item.type === "INCOME").slice(0, 5)} onDetails={showTransactionDetails} onReceipt={openReceipt} />
                                     </div>
                                     <div className="content-card">
                                         <div className="card-heading"><div><h3>Pengeluaran terbaru</h3><p>Riwayat uang keluar</p></div><button className="btn btn-sm btn-outline-secondary" onClick={() => setPage("expense")}>Lihat semua</button></div>
-                                        <TransactionTable transactions={visibleTransactions.filter((item) => item.type === "EXPENSE").slice(0, 5)} onDelete={setSelectedDeleteId} onEdit={editTransaction} onReceipt={openReceipt} />
+                                        <TransactionTable transactions={visibleTransactions.filter((item) => item.type === "EXPENSE").slice(0, 5)} onDetails={showTransactionDetails} onReceipt={openReceipt} />
                                     </div>
                                 </div>
                                 <div className="dashboard-tools">
@@ -1623,7 +1704,7 @@ export default function App() {
                                         </button>
                                     </EmptyState>
                                 ) : pageTransactions.length ? (
-                                    <TransactionTable transactions={pageTransactions} onDelete={setSelectedDeleteId} onEdit={editTransaction} onReceipt={openReceipt} />
+                                    <TransactionTable transactions={pageTransactions} onDelete={setSelectedDeleteId} onEdit={editTransaction} onDetails={showTransactionDetails} onReceipt={openReceipt} />
                                 ) : (
                                     <EmptyState
                                         icon="bi-search"
@@ -1804,6 +1885,166 @@ export default function App() {
                     </PageTransition>
                 </section>
             </main>
+            <Modal
+                open={transactionDetail !== null}
+                onClose={closeTransactionDetails}
+                titleId="transaction-detail-title"
+                className="transaction-detail-modal"
+            >
+                <div className="transaction-detail-heading">
+                    <div>
+                        <span className="transaction-detail-kicker">RINCIAN TRANSAKSI</span>
+                        <h2 id="transaction-detail-title">
+                            {transactionDetail?.transaction?.merchant_name
+                                || transactionDetail?.transaction?.notes
+                                || "Detail transaksi"}
+                        </h2>
+                    </div>
+                    <button type="button" className="btn-close" aria-label="Tutup detail transaksi" onClick={closeTransactionDetails} />
+                </div>
+                {transactionDetail?.status === "loading" && (
+                    <div className="transaction-detail-loading" role="status">
+                        <span className="button-spinner" aria-hidden="true" />
+                        Memuat rincian transaksi...
+                    </div>
+                )}
+                {transactionDetail?.status === "error" && (
+                    <div className="alert alert-danger" role="alert">
+                        <p className="mb-2">{transactionDetail.error}</p>
+                        <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => showTransactionDetails(transactionDetail.id)}>
+                            Coba lagi
+                        </button>
+                    </div>
+                )}
+                {transactionDetail?.status === "ready" && (() => {
+                    const detail = transactionDetail.transaction;
+                    const detailItems = detail.items || [];
+                    return (
+                        <>
+                            <div className="transaction-detail-summary">
+                                <span className={`transaction-detail-type${detail.type === "INCOME" ? " is-income" : ""}`}>
+                                    <i className={`bi ${detail.type === "INCOME" ? "bi-arrow-down-left" : "bi-arrow-up-right"}`} />
+                                    {detail.type === "INCOME" ? "Pemasukan" : "Pengeluaran"}
+                                </span>
+                                <strong>{detail.type === "INCOME" ? "+" : "-"}{money(detail.amount)}</strong>
+                            </div>
+                            <dl className="transaction-detail-fields">
+                                <div><dt>Tanggal</dt><dd>{dateLabel(detail.transaction_date)}</dd></div>
+                                <div><dt>Kategori</dt><dd>{detail.category_name || "Tanpa kategori"}</dd></div>
+                                <div><dt>Merchant / sumber</dt><dd>{detail.merchant_name || "-"}</dd></div>
+                                <div><dt>Catatan</dt><dd>{detail.notes || "-"}</dd></div>
+                            </dl>
+                            <section className="transaction-detail-items">
+                                <div className="transaction-detail-section-heading">
+                                    <h3>Rincian item</h3>
+                                    <span>{detailItems.length} item</span>
+                                </div>
+                                {detailItems.length ? (
+                                    <div className="table-responsive">
+                                        <table className="table align-middle mb-0">
+                                            <thead>
+                                                <tr><th>Nama item</th><th className="text-end">Qty</th><th className="text-end">Harga satuan</th><th className="text-end">Total</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                {detailItems.map((item) => (
+                                                    <tr key={item.item_id}>
+                                                        <td>{item.item_name}</td>
+                                                        <td className="text-end">{item.quantity}</td>
+                                                        <td className="text-end">{item.unit_price == null ? "-" : money(item.unit_price)}</td>
+                                                        <td className="text-end fw-semibold">{money(item.total_price)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p className="transaction-detail-no-items">Tidak ada rincian item untuk transaksi ini.</p>
+                                )}
+                            </section>
+                            <div className="transaction-detail-actions">
+                                {detail.receipt_url && (
+                                    <button type="button" className="btn btn-outline-primary" onClick={() => openReceipt(detail.transaction_id)}>
+                                        <i className="bi bi-image me-2" />Buka bukti transaksi
+                                    </button>
+                                )}
+                                <button type="button" className="btn btn-primary" onClick={closeTransactionDetails}>Tutup</button>
+                            </div>
+                        </>
+                    );
+                })()}
+            </Modal>
+            <Modal
+                open={Boolean(transactionConfirmation)}
+                onClose={() => setTransactionConfirmation(null)}
+                titleId="confirm-transaction-title"
+                className="confirm-transaction-modal"
+            >
+                <span className="transaction-confirm-icon">
+                    <i className={transactionConfirmation?.editingTransactionId
+                        ? "bi bi-pencil-square"
+                        : "bi bi-check2-circle"} />
+                </span>
+                <h2 id="confirm-transaction-title">
+                    {transactionConfirmation?.editingTransactionId
+                        ? "Konfirmasi perubahan transaksi"
+                        : "Konfirmasi transaksi baru"}
+                </h2>
+                <p>
+                    Periksa ringkasan berikut. Transaksi hanya akan disimpan setelah Anda
+                    mengonfirmasi.
+                </p>
+                {transactionConfirmation && (
+                    <div className="transaction-confirm-summary">
+                        <div>
+                            <span>Jenis</span>
+                            <strong>
+                                {transactionConfirmation.form.type === "INCOME"
+                                    ? "Pemasukan"
+                                    : "Pengeluaran"}
+                            </strong>
+                        </div>
+                        <div>
+                            <span>Nominal</span>
+                            <strong>{money(transactionConfirmation.form.amount)}</strong>
+                        </div>
+                        {transactionConfirmation.form.merchantName && (
+                            <div>
+                                <span>Merchant / sumber</span>
+                                <strong>{transactionConfirmation.form.merchantName}</strong>
+                            </div>
+                        )}
+                        {transactionConfirmation.receiptFile && (
+                                <div>
+                                    <span>Bukti</span>
+                                    <strong>
+                                        {transactionConfirmation.editingTransactionId
+                                            ? `Ganti dengan ${transactionConfirmation.receiptFile.name}`
+                                            : transactionConfirmation.receiptFile.name}
+                                    </strong>
+                                </div>
+                            )}
+                    </div>
+                )}
+                <div className="delete-modal-actions">
+                    <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        onClick={() => setTransactionConfirmation(null)}
+                    >
+                        Kembali periksa
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={busy}
+                        onClick={confirmSaveTransaction}
+                    >
+                        {transactionConfirmation?.editingTransactionId
+                            ? "Ya, simpan perubahan"
+                            : "Ya, tambah transaksi"}
+                    </button>
+                </div>
+            </Modal>
             <Modal
                 open={selectedDeleteId !== null}
                 onClose={closeDeleteModal}

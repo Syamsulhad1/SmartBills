@@ -111,7 +111,7 @@ const updateTransactionWithItems = async ({
 }) => {
     return withTransaction(async (client) => {
         const currentResult = await client.query(`
-            SELECT transaction_id, type, amount
+            SELECT transaction_id, type, amount, image_url
             FROM transactions
             WHERE transaction_id = $1 AND user_id = $2
             FOR UPDATE;
@@ -126,7 +126,8 @@ const updateTransactionWithItems = async ({
         const transaction = await updateTransactionForUser({
             transactionId,
             userId,
-            ...input
+            ...input,
+            imageUrl: input.imageUrl ?? null
         }, client);
         const balanceDelta = transactionEffect(transaction)
             - transactionEffect(current);
@@ -138,7 +139,8 @@ const updateTransactionWithItems = async ({
         return {
             ...transaction,
             items: await findItemsByTransactionId(transactionId, client),
-            current_balance: currentBalance
+            current_balance: currentBalance,
+            previousImageUrl: current.image_url
         };
     });
 };

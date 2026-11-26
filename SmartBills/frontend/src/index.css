@@ -780,6 +780,20 @@ button, input, select, textarea { font-family: inherit; }
     line-height: 1.45;
 }
 .auth-error i { margin-top: 2px; color: #ff8378; }
+.auth-success {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin: -10px 0 17px;
+    padding: 11px 13px;
+    border: 1px solid #286747;
+    border-radius: 11px;
+    background: #193329;
+    color: #b8f1d0;
+    font-size: .79rem;
+    line-height: 1.45;
+}
+.auth-success i { margin-top: 2px; color: #52dea2; }
 .auth-form { display: grid; gap: 14px; }
 .auth-field { position: relative; display: block; margin: 0; }
 .auth-field input {
@@ -1677,10 +1691,99 @@ body, .app-shell { background: var(--canvas); color: var(--ink); }
 }
 .confirm-delete-modal h2 { color: var(--color-text); font-size: 1.25rem; font-weight: 750; }
 .confirm-delete-modal p { margin: var(--space-2) 0 var(--space-6); color: var(--color-text-secondary); font-size: .86rem; line-height: 1.6; }
+.confirm-transaction-modal .transaction-confirm-icon {
+    display: grid;
+    width: 46px;
+    height: 46px;
+    margin-bottom: var(--space-4);
+    place-items: center;
+    border-radius: 14px;
+    background: rgba(46, 230, 166, .12);
+    color: var(--color-mint);
+    font-size: 1.2rem;
+}
+.confirm-transaction-modal h2 { color: var(--color-text); font-size: 1.25rem; font-weight: 750; }
+.confirm-transaction-modal > p { margin: var(--space-2) 0 var(--space-4); color: var(--color-text-secondary); font-size: .86rem; line-height: 1.6; }
+.transaction-confirm-summary {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, .025);
+}
+.transaction-confirm-summary > div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    color: var(--color-text-secondary);
+    font-size: .82rem;
+}
+.transaction-confirm-summary strong {
+    max-width: 65%;
+    color: var(--color-text);
+    overflow-wrap: anywhere;
+    text-align: right;
+}
 .delete-modal-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
 @keyframes receipt-upload-progress { from { transform: translateX(-110%); } to { transform: translateX(290%); } }
 
+.transaction-detail-modal { width: min(100%, 760px); }
+.transaction-detail-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+}
+.transaction-detail-heading h2 {
+    margin: var(--space-1) 0 0;
+    color: var(--color-text);
+    font-size: 1.25rem;
+    font-weight: 750;
+    overflow-wrap: anywhere;
+}
+.transaction-detail-kicker {
+    color: var(--color-text-secondary);
+    font-size: .7rem;
+    font-weight: 750;
+    letter-spacing: .08em;
+}
+.transaction-detail-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-background);
+}
+.transaction-detail-summary > strong { color: var(--color-text); font-size: 1.2rem; }
+.transaction-detail-type { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--color-coral); font-size: .85rem; font-weight: 700; }
+.transaction-detail-type.is-income { color: var(--color-mint); }
+.transaction-detail-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+}
+.transaction-detail-fields div { min-width: 0; }
+.transaction-detail-fields dt { margin-bottom: 3px; color: var(--color-text-secondary); font-size: .75rem; font-weight: 600; }
+.transaction-detail-fields dd { margin: 0; color: var(--color-text); font-size: .88rem; overflow-wrap: anywhere; }
+.transaction-detail-section-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-2); }
+.transaction-detail-section-heading h3 { margin: 0; color: var(--color-text); font-size: .98rem; font-weight: 700; }
+.transaction-detail-section-heading span { color: var(--color-text-secondary); font-size: .78rem; }
+.transaction-detail-items .table { min-width: 560px; font-size: .82rem; }
+.transaction-detail-items .table th { color: var(--color-text-secondary); font-size: .72rem; white-space: nowrap; }
+.transaction-detail-no-items { margin: 0; padding: var(--space-4); border: 1px dashed var(--color-border); border-radius: var(--radius-md); color: var(--color-text-secondary); font-size: .84rem; text-align: center; }
+.transaction-detail-loading { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-5) 0; color: var(--color-text-secondary); }
+.transaction-detail-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-5); }
+
 @media (max-width: 760px) {
+    .transaction-detail-fields { grid-template-columns: 1fr; gap: var(--space-3); }
+    .transaction-detail-summary { align-items: flex-start; flex-direction: column; }
     .scanner-camera { min-height: 210px; aspect-ratio: 4 / 3; }
     .scanner-actions { align-items: stretch; flex-direction: column; }
     .scanner-actions .btn { width: 100%; }

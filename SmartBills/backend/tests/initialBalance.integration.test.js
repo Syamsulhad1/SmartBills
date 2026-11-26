@@ -439,4 +439,66 @@ describe("Integration test saldo awal pengguna", () => {
         assertNoPasswordHash(login.user);
         assertNoPasswordHash(getUser(profile.body));
     });
+
+    describe("dashboard analytics", () => {
+        test("ringkasan analitik sesuai transaksi tersimpan, termasuk akun tanpa transaksi", async () => {
+            const emptyAccount = await createLoggedInUser("analytics_empty");
+            const emptyResponse = await request("/api/analytics?period=monthly", {
+                headers: authHeaders(emptyAccount.token)
+            });
+
+            assert.equal(emptyResponse.status, 200);
+            const emptyOverview = getPayload(emptyResponse.body);
+            assert.equal(Number(emptyOverview.summary.income), 0);
+            assert.equal(Number(emptyOverview.summary.expense), 0);
+            assert.deepEqual(emptyOverview.categories, []);
+            assert.equal(Number(emptyOverview.current_periods.weekly.income), 0);
+            assert.equal(Number(emptyOverview.current_periods.monthly.expense), 0);
+
+            const account = await createLoggedInUser("analytics_transactions");
+            await setBalance(account.token, "100000.00");
+
+            const transactions = [
+                { type: "INCOME", amount: "25000.00" },
+                { type: "EXPENSE", amount: "3000.00" },
+                { type: "EXPENSE", amount: "2000.00" }
+            ];
+            for (const transaction of transactions) {
+                const response = await request("/api/transactions", {
+                    method: "POST",
+                    headers: authHeaders(account.token),
+                    body: JSON.stringify(transaction)
+                });
+                assert.equal(response.status, 201);
+            }
+
+            const monthlyResponse = await request(
+                "/api/analytics?period=monthly",
+                { headers: authHeaders(account.token) }
+            );
+            assert.equal(monthlyResponse.status, 200);
+
+            const overview = getPayload(monthlyResponse.body);
+            assert.equal(Number(overview.summary.income), 25000);
+            assert.equal(Number(overview.summary.expense), 5000);
+            assert.equal(Number(overview.summary.net), 20000);
+            assert.equal(overview.summary.transaction_count, 3);
+            assert.equal(Number(overview.current_periods.weekly.income), 25000);
+            assert.equal(Number(overview.current_periods.weekly.expense), 5000);
+            assert.equal(Number(overview.current_periods.monthly.income), 25000);
+            assert.equal(Number(overview.current_periods.monthly.expense), 5000);
+
+            const currentMonth = overview.trend[overview.trend.length - 1];
+            assert.equal(Number(currentMonth.income), Number(overview.summary.income));
+            assert.equal(Number(currentMonth.expense), Number(overview.summary.expense));
+            assert.equal(
+                overview.categories.reduce(
+                    (total, category) => total + Number(category.amount),
+                    0
+                ),
+                Number(overview.summary.expense)
+            );
+            assert.equal(overview.categories[0].transaction_count, 2);
+        });
+    });
 });

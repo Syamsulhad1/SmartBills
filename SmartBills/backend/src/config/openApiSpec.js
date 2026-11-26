@@ -1094,7 +1094,7 @@ const openApiSpec = {
                 tags: ["Analytics"],
                 summary: "Get financial analytics for a calendar period",
                 description:
-                    "Returns current balance, full-period cash-flow totals, trend buckets, and expense totals by category.",
+                    "Returns current balance, full-period cash-flow totals, current week and month totals, trend buckets, and expense totals by category.",
                 security: [{ bearerAuth: [] }],
                 parameters: [
                     {

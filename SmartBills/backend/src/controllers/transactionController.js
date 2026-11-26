@@ -46,7 +46,7 @@ const listTransactions = async (req, res) => {
     );
 };
 
-const createTransaction = async (req, res, expectedType = null) => {
+const createTransactionForType = async (req, res, expectedType = null) => {
     const receiptFilename = req.file?.filename ?? null;
     let transaction;
 
@@ -92,12 +92,16 @@ const createTransaction = async (req, res, expectedType = null) => {
     );
 };
 
+const createTransaction = (req, res) => (
+    createTransactionForType(req, res)
+);
+
 const createIncomeTransaction = (req, res) => (
-    createTransaction(req, res, "INCOME")
+    createTransactionForType(req, res, "INCOME")
 );
 
 const createExpenseTransaction = (req, res) => (
-    createTransaction(req, res, "EXPENSE")
+    createTransactionForType(req, res, "EXPENSE")
 );
 
 const getTransactionReceipt = async (req, res) => {
@@ -168,26 +172,67 @@ const getTransactionDetails = async (req, res) => {
 };
 
 const updateTransaction = async (req, res, expectedType = null) => {
-    const transactionId = parseTransactionId(
-        req.params.transactionId
-    );
+    const receiptFilename = req.file?.filename ?? null;
+    try {
+        const transactionId = parseTransactionId(req.params.transactionId);
+        const input = validateCreateTransaction(req.body, expectedType);
+        if (req.file) {
+            const buffer = await fs.promises.readFile(req.file.path);
+            validateReceiptBuffer(buffer, req.file.mimetype);
+        }
 
-    const input = validateCreateTransaction(req.body, expectedType);
+        const transaction = await updateTransactionWithItems({
+            transactionId,
+            userId: req.user.user_id,
+            ...input,
+            imageUrl: receiptFilename
+        });
+        const { previousImageUrl, ...updatedTransaction } = transaction;
 
-    const transaction = await updateTransactionWithItems({
-        transactionId,
-        userId: req.user.user_id,
-        ...input
-    });
+        if (receiptFilename && previousImageUrl) {
+            const previousReceiptPath = getReceiptPath(previousImageUrl);
+            if (previousReceiptPath) {
+                try {
+                    await fs.promises.unlink(previousReceiptPath);
+                } catch (error) {
+                    if (error.code !== "ENOENT") {
+                        logger.error("Failed to remove replaced receipt", {
+                            error: {
+                                message: error.message,
+                                code: error.code
+                            }
+                        });
+                    }
+                }
+            }
+        }
 
-    return success(
-        res,
-        {
-            ...toTransactionResponse(transaction),
-            items: transaction.items
-        },
-        "Transaction updated"
-    );
+        return success(
+            res,
+            {
+                ...toTransactionResponse(updatedTransaction),
+                items: updatedTransaction.items
+            },
+            "Transaction updated"
+        );
+    } catch (error) {
+        if (receiptFilename) {
+            try {
+                await fs.promises.unlink(req.file.path);
+            } catch (cleanupError) {
+                if (cleanupError.code !== "ENOENT") {
+                    logger.error("Failed to remove rejected receipt upload", {
+                        error: {
+                            message: cleanupError.message,
+                            code: cleanupError.code
+                        }
+                    });
+                }
+            }
+        }
+
+        throw error;
+    }
 };
 
 const updateIncomeTransaction = (req, res) => (

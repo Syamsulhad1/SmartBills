@@ -1,0 +1,16 @@
+{
+  "name": "smartbills",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others --handle-input --default-input-target MOBILE --names API,OCR,WEB,MOBILE --prefix-colors blue,magenta,green,cyan \"npm --prefix backend run dev\" \"npm --prefix backend run start:ocr\" \"npm --prefix frontend run dev -- --host 0.0.0.0\" \"npm --prefix mobile run start -- --lan\"",
+    "test:backend": "npm --prefix backend test",
+    "test:mobile": "npm --prefix mobile test",
+    "test": "npm run test:backend && npm run test:mobile",
+    "build:web": "npm --prefix frontend run build",
+    "build:mobile:android": "npm --prefix mobile run build:android"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.7"
+  }
+}

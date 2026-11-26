@@ -29,7 +29,8 @@ default. Restart Vite setelah mengubah `.env`.
 - Dashboard dari `GET /api/analytics?period=monthly`.
 - Profil serta penetapan saldo awal satu kali.
 - Halaman pemasukan dan pengeluaran terpisah untuk melihat, menambah,
-  mengubah, dan menghapus transaksi sesuai jenis; upload bukti privat.
+  mengubah, dan menghapus transaksi sesuai jenis; detail baca-saja memuat
+  metadata, rincian item, dan akses ke bukti privat.
 - OCR gambar lokal melalui `POST /api/ai/ocr`, dilanjutkan parsing draft Gemini
   melalui `POST /api/ai/parse-transaction`.
 

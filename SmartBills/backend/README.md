@@ -321,13 +321,15 @@ Semua endpoint berikut memerlukan JWT:
 - `GET /api/analytics?period=weekly` merangkum 12 minggu terakhir.
 - `GET /api/analytics?period=monthly` (default) merangkum 6 bulan terakhir.
 - Overview berisi saldo terkini, total pemasukan/pengeluaran, arus kas bersih,
-  jumlah transaksi, seri arus kas, dan breakdown pengeluaran per kategori.
+  jumlah transaksi, seri arus kas, breakdown pengeluaran per kategori, serta
+  ringkasan pemasukan/pengeluaran untuk minggu dan bulan berjalan.
 - `GET /api/analytics/receipts?period=monthly&limit=12&offset=0` memberikan
   halaman receipt milik pengguna pada periode yang dipilih. Gambar tetap harus
   diminta melalui endpoint receipt transaksi yang memverifikasi JWT dan
   kepemilikan.
 
-Rentang periode mencakup bucket kalender berjalan. Overview dihitung di backend
+Rentang periode mencakup bucket kalender berjalan. Ringkasan minggu/bulan
+berjalan memakai batas kalender masing-masing. Overview dihitung di backend
 dari seluruh transaksi dalam rentang tersebut, bukan sampel transaksi terbaru.
 
 ## Langkah implementasi berikutnya

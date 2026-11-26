@@ -25,13 +25,13 @@ router.post("/income", uploadReceipt, createIncomeTransaction);
 router.post("/expense", uploadReceipt, createExpenseTransaction);
 router.post("/", uploadReceipt, createTransaction);
 
-router.put("/income/:transactionId", updateIncomeTransaction);
-router.put("/expense/:transactionId", updateExpenseTransaction);
+router.put("/income/:transactionId", uploadReceipt, updateIncomeTransaction);
+router.put("/expense/:transactionId", uploadReceipt, updateExpenseTransaction);
 router.get("/:transactionId/receipt", getTransactionReceipt);
 router.get("/:transactionId", getTransactionDetails);
 
 // Update transaksi berdasarkan ID.
-router.put("/:transactionId", updateTransaction);
+router.put("/:transactionId", uploadReceipt, updateTransaction);
 
 // Delete transaksi berdasarkan ID.
 router.delete("/:transactionId", deleteTransactionHandler);

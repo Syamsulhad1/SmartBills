@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "SmartBills",
+    "slug": "smartbills",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "smartbills",
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Izinkan SmartBills menggunakan kamera untuk memotret struk transaksi."
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.smartbills.mobile"
+    },
+    "android": {
+      "package": "com.smartbills.mobile"
+    }
+  }
+}

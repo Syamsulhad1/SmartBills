@@ -88,6 +88,42 @@ const getAnalyticsOverview = async (userId, period) => {
 				GROUP BY bucket.bucket_start
 				ORDER BY bucket.bucket_start;
 			`, parameters);
+		const currentPeriodsResult = await client.query(`
+				WITH bounds AS (
+					SELECT
+						date_trunc('week', CURRENT_TIMESTAMP)::timestamp AS week_start,
+						date_trunc('month', CURRENT_TIMESTAMP)::timestamp AS month_start
+				)
+				SELECT
+					COALESCE(SUM(t.amount) FILTER (
+						WHERE t.type = 'INCOME'
+						  AND t.transaction_date >= bounds.week_start
+						  AND t.transaction_date < bounds.week_start + INTERVAL '1 week'
+					), 0)::numeric AS week_income,
+					COALESCE(SUM(t.amount) FILTER (
+						WHERE t.type = 'EXPENSE'
+						  AND t.transaction_date >= bounds.week_start
+						  AND t.transaction_date < bounds.week_start + INTERVAL '1 week'
+					), 0)::numeric AS week_expense,
+					COALESCE(SUM(t.amount) FILTER (
+						WHERE t.type = 'INCOME'
+						  AND t.transaction_date >= bounds.month_start
+						  AND t.transaction_date < bounds.month_start + INTERVAL '1 month'
+					), 0)::numeric AS month_income,
+					COALESCE(SUM(t.amount) FILTER (
+						WHERE t.type = 'EXPENSE'
+						  AND t.transaction_date >= bounds.month_start
+						  AND t.transaction_date < bounds.month_start + INTERVAL '1 month'
+					), 0)::numeric AS month_expense
+				FROM bounds
+				LEFT JOIN transactions t
+					ON t.user_id = $1
+				   AND t.transaction_date >= LEAST(bounds.week_start, bounds.month_start)
+				   AND t.transaction_date < GREATEST(
+					   bounds.week_start + INTERVAL '1 week',
+					   bounds.month_start + INTERVAL '1 month'
+				   );
+			`, [userId]);
 		const categoriesResult = await client.query(`
 				WITH bounds AS (
 					SELECT
@@ -112,6 +148,7 @@ const getAnalyticsOverview = async (userId, period) => {
 			`, parameters);
 
 		const totals = totalsResult.rows[0];
+		const currentPeriods = currentPeriodsResult.rows[0];
 		return {
 			period,
 			range: {
@@ -124,6 +161,16 @@ const getAnalyticsOverview = async (userId, period) => {
 				expense: totals.expense,
 				net: totals.net,
 				transaction_count: totals.transaction_count
+			},
+			current_periods: {
+				weekly: {
+					income: currentPeriods.week_income,
+					expense: currentPeriods.week_expense
+				},
+				monthly: {
+					income: currentPeriods.month_income,
+					expense: currentPeriods.month_expense
+				}
 			},
 			trend: trendResult.rows,
 			categories: categoriesResult.rows

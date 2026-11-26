@@ -74,7 +74,9 @@ export const api = {
         {
             token,
             method: "PUT",
-            body: JSON.stringify(transaction)
+            body: transaction instanceof FormData
+                ? transaction
+                : JSON.stringify(transaction)
         }
     ),
     updateExpenseTransaction: (token, id, transaction) => request(
@@ -82,7 +84,9 @@ export const api = {
         {
             token,
             method: "PUT",
-            body: JSON.stringify(transaction)
+            body: transaction instanceof FormData
+                ? transaction
+                : JSON.stringify(transaction)
         }
     ),
     deleteTransaction: (token, id) => request(`/transactions/${id}`, {
@@ -111,7 +115,22 @@ export const api = {
             { headers: { Authorization: "Bearer " + token } }
         );
         if (!response.ok) {
-            throw new Error("Bukti transaksi tidak dapat dibuka.");
+            let message = `Bukti transaksi gagal dibuka (HTTP ${response.status}).`;
+            try {
+                const payload = await response.json();
+                if (response.status === 404) {
+                    message = "File bukti tidak ditemukan di server. Transaksi mungkin tersimpan tanpa lampiran.";
+                } else if (response.status === 401) {
+                    message = "Sesi login tidak valid. Silakan masuk kembali.";
+                } else if (payload?.message) {
+                    message = payload.message;
+                }
+            } catch {
+                // Keep the HTTP status message if the server response is not JSON.
+            }
+            const error = new Error(message);
+            error.status = response.status;
+            throw error;
         }
         return response.blob();
     }
