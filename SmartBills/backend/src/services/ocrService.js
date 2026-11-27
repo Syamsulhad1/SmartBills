@@ -4,7 +4,7 @@ const {
 } = require("../config/environment");
 const { validateReceiptBuffer } = require("../config/storage");
 
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const REQUEST_TIMEOUT_MS = 65000;
 
 const createError = (message, statusCode, code) => {
@@ -30,7 +30,7 @@ const recognizeReceipt = async (
     validateReceiptBuffer(imageBuffer, mimeType);
     if (imageBuffer.length > MAX_IMAGE_BYTES) {
         throw createError(
-            "Receipt image exceeds the 4 MB OCR limit",
+            "Receipt image exceeds the 5 MB OCR limit",
             413,
             "OCR_IMAGE_TOO_LARGE"
         );

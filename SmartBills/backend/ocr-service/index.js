@@ -3,8 +3,8 @@ const { timingSafeEqual } = require("node:crypto");
 const os = require("node:os");
 const path = require("node:path");
 
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
-const MAX_REQUEST_BYTES = 6 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_REQUEST_BYTES = 8 * 1024 * 1024;
 const MAX_QUEUED_RECOGNITIONS = 3;
 const supportedMimeTypes = new Set([
     "image/jpeg",

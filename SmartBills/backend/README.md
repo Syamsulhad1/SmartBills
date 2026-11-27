@@ -284,7 +284,7 @@ Service OCR memakai port `8080` secara default; API backend tetap di `5000`.
 Keduanya memakai token internal yang sama untuk mengamankan panggilan OCR.
 
 Endpoint `POST /api/ai/ocr` memerlukan JWT dan `multipart/form-data` dengan
-field `receipt`. Gambar JPEG/PNG/WebP dibatasi maksimal 4 MB. Respons berisi
+field `receipt`. Gambar JPEG/PNG/WebP dibatasi maksimal 5 MB. Respons berisi
 teks OCR mentah saja; gambar tidak disimpan oleh endpoint OCR.
 
 ### Parsing Teks Bukti Dengan Gemini

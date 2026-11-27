@@ -12,7 +12,7 @@ import { api } from "../api/client";
 import { ReceiptDraftEditor } from "./ReceiptDraftEditor";
 
 const supportedImageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
-const maxImageBytes = 4 * 1024 * 1024;
+const maxImageBytes = 5 * 1024 * 1024;
 
 const getImageMimeType = (asset) => {
     const mimeType = asset.mimeType?.toLowerCase();
@@ -44,7 +44,7 @@ export const ReceiptCamera = ({ token, onTransactionSaved }) => {
             return;
         }
         if (asset.fileSize > maxImageBytes) {
-            setError("Ukuran gambar maksimal 4 MB.");
+            setError("Ukuran gambar maksimal 5 MB.");
             setStatus("idle");
             return;
         }

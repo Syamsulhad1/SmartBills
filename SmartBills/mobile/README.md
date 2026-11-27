@@ -62,7 +62,7 @@ jika permintaan tidak tersambung.
   nominal ke `POST /api/users/me/initial-balance`. Backend hanya mengizinkan
   saldo awal ditetapkan satu kali.
 - Bagian scan struk dapat mengambil foto dari kamera atau memilih JPEG, PNG,
-  maupun WebP dari galeri. Gambar maksimal 4 MB ditampilkan sebagai pratinjau,
+  maupun WebP dari galeri. Gambar maksimal 5 MB ditampilkan sebagai pratinjau,
   lalu dikirim sebagai multipart ke `POST /api/ai/ocr`. Teks OCR ditampilkan
   untuk diperiksa sebelum pengguna memilih analisis AI. AI mengirim teks ke
   `POST /api/ai/parse-transaction` dan menampilkan draft serta peringatan untuk

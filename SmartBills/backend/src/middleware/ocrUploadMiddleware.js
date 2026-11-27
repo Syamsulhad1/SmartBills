@@ -1,7 +1,7 @@
 const multer = require("multer");
 const { receiptExtensions } = require("../config/storage");
 
-const OCR_MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+const OCR_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -12,7 +12,7 @@ const upload = multer({
     fileFilter: (req, file, callback) => {
         if (!receiptExtensions[file.mimetype]) {
             const error = new Error(
-                "Receipt must be a JPEG, PNG, or WebP image no larger than 4 MB"
+                "Receipt must be a JPEG, PNG, or WebP image no larger than 5 MB"
             );
             error.statusCode = 400;
             return callback(error);

@@ -1184,9 +1184,9 @@ export default function App() {
             setOcrFileError("Format gambar harus JPEG, PNG, atau WebP.");
             return false;
         }
-        if (file.size > 4 * 1024 * 1024) {
+        if (file.size > 5 * 1024 * 1024) {
             setOcrFile(null);
-            setOcrFileError("Ukuran gambar maksimal 4 MB.");
+            setOcrFileError("Ukuran gambar maksimal 5 MB.");
             return false;
         }
         setOcrFile(file);

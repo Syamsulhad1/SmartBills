@@ -1206,7 +1206,7 @@ const openApiSpec = {
                         description: "Image missing or format unsupported"
                     },
                     401: { description: "Authentication required" },
-                    413: { description: "Image exceeds the 4 MB limit" },
+                    413: { description: "Image exceeds the 5 MB limit" },
                     422: { description: "No readable text found" },
                     502: { description: "OCR service failed" },
                     503: { description: "OCR service is unavailable" },
