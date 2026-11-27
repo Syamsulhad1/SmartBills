@@ -144,7 +144,9 @@ Setelah server aktif, buka:
 
 Untuk mencoba endpoint yang memerlukan autentikasi, daftarkan akun lewat
 `POST /api/auth/register`, kemudian login lewat `POST /api/auth/login`.
-Salin `data.token` dari respons login, klik **Authorize** di Swagger, dan
+Saat registrasi, kata sandi minimal 8 karakter serta harus mengandung huruf
+dan angka. Aturan ini tidak diterapkan saat login agar akun lama tetap dapat
+masuk. Salin `data.token` dari respons login, klik **Authorize** di Swagger, dan
 tempel token JWT. `GET /api/categories` menampilkan ID dan nama kategori;
 filter opsional tersedia melalui `?type=EXPENSE` atau `?type=INCOME`.
 Untuk upload transaksi, gunakan `POST /api/transactions` dengan

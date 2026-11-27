@@ -54,6 +54,10 @@ const formatAmountInput = (value) => {
     return decimalPart === undefined ? grouped : `${grouped},${decimalPart}`;
 };
 
+const passwordPolicyMessage = "Password minimal 8 karakter serta harus mengandung huruf dan angka.";
+const isStrongPassword = (value) =>
+    value.length >= 8 && /[A-Za-z]/.test(value) && /\d/.test(value);
+
 function AuthPage({ onLogin }) {
     const [registering, setRegistering] = useState(false);
     const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -64,6 +68,10 @@ function AuthPage({ onLogin }) {
     const [busy, setBusy] = useState(false);
     const submit = async (event) => {
         event.preventDefault();
+        if (registering && !isStrongPassword(form.password)) {
+            setError(passwordPolicyMessage);
+            return;
+        }
         if (registering && form.password !== confirmPassword) {
             setError("Konfirmasi kata sandi belum sama.");
             return;
@@ -221,6 +229,11 @@ function AuthPage({ onLogin }) {
                                     <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`} />
                                 </button>
                             </label>
+                            {registering && (
+                                <small className="auth-field-hint">
+                                    Minimal 8 karakter, serta mengandung huruf dan angka.
+                                </small>
+                            )}
                             {registering && (
                                 <label className="auth-field">
                                     <input

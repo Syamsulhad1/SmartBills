@@ -41,7 +41,10 @@ jika permintaan tidak tersambung.
 ## Sesi dan komunikasi API
 
 - Login memakai `POST /api/auth/login`.
-- Registrasi memakai `POST /api/auth/register`, lalu login untuk mendapatkan JWT.
+- Registrasi memakai `POST /api/auth/register`, lalu login untuk mendapatkan
+  JWT. Kata sandi registrasi minimal 8 karakter serta harus mengandung huruf
+  dan angka; aturan ini tidak diterapkan saat login agar akun lama tetap dapat
+  masuk.
 - Sesi yang dipulihkan diverifikasi melalui `GET /api/users/me`.
 - JWT disimpan dengan `expo-secure-store` dan dihapus saat pengguna keluar.
 - Jika server tidak terjangkau, aplikasi menampilkan error dan opsi untuk mencoba

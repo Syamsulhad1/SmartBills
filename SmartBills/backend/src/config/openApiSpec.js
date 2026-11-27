@@ -237,7 +237,8 @@ const openApiSpec = {
                     password: {
                         type: "string",
                         format: "password",
-                        example: "password123"
+                        description: "Untuk registrasi: minimal 8 karakter serta harus mengandung huruf dan angka",
+                        example: "SmartBills123"
                     }
                 }
             },

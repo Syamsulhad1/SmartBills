@@ -818,6 +818,7 @@ button, input, select, textarea { font-family: inherit; }
     transition: transform .18s ease, color .18s ease, font-size .18s ease;
 }
 .auth-field > i { position: absolute; top: 20px; right: 15px; color: #819287; font-size: .9rem; }
+.auth-field-hint { display: block; margin: -7px 2px 0; color: #8f9e94; font-size: .72rem; line-height: 1.4; }
 .auth-field input:focus, .auth-field input:not(:placeholder-shown) {
     border-color: #35c889;
     background: rgba(8, 15, 11, .58);

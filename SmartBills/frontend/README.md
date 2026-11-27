@@ -25,7 +25,9 @@ default. Restart Vite setelah mengubah `.env`.
 
 ## Fitur yang dihubungkan
 
-- Login dan registrasi JWT.
+- Login dan registrasi JWT. Registrasi mewajibkan kata sandi minimal 8
+  karakter serta mengandung huruf dan angka; aturan ini tidak diterapkan saat
+  login agar akun lama tetap dapat masuk.
 - Dashboard dari `GET /api/analytics?period=monthly`.
 - Profil serta penetapan saldo awal satu kali.
 - Halaman pemasukan dan pengeluaran terpisah untuk melihat, menambah,

@@ -1,3 +1,12 @@
+const PASSWORD_REQUIREMENT_MESSAGE =
+    "Password minimal 8 karakter serta harus mengandung huruf dan angka";
+
+const isStrongPassword = (password) =>
+    typeof password === "string" &&
+    password.length >= 8 &&
+    /[A-Za-z]/.test(password) &&
+    /\d/.test(password);
+
 const validateRegisterInput = ({ name, email, password }) => {
     const errors = [];
 
@@ -17,8 +26,8 @@ const validateRegisterInput = ({ name, email, password }) => {
 
     if (!password || typeof password !== "string") {
         errors.push("Password wajib diisi");
-    } else if (password.length < 8) {
-        errors.push("Password minimal 8 karakter");
+    } else if (!isStrongPassword(password)) {
+        errors.push(PASSWORD_REQUIREMENT_MESSAGE);
     }
 
     return errors;
@@ -46,5 +55,6 @@ const validateLoginInput = ({ email, password }) => {
 
 module.exports = {
     validateRegisterInput,
-    validateLoginInput
+    validateLoginInput,
+    isStrongPassword
 };

@@ -12,6 +12,12 @@ import {
 } from "react-native";
 import { Screen } from "./Screen";
 
+const PASSWORD_REQUIREMENT_MESSAGE =
+    "Password minimal 8 karakter serta harus mengandung huruf dan angka.";
+
+const isStrongPassword = (value) =>
+    value.length >= 8 && /[A-Za-z]/.test(value) && /\d/.test(value);
+
 const colors = {
     ink: "#14251D",
     muted: "#68776F",
@@ -42,6 +48,10 @@ export const AuthForm = ({
         }
         if (registering && !name.trim()) {
             setError("Nama wajib diisi.");
+            return;
+        }
+        if (registering && !isStrongPassword(password)) {
+            setError(PASSWORD_REQUIREMENT_MESSAGE);
             return;
         }
 
@@ -106,8 +116,14 @@ export const AuthForm = ({
                         onChangeText={setPassword}
                         placeholder="Masukkan kata sandi"
                         secureTextEntry
+                        autoCapitalize="none"
                         autoComplete={registering ? "new-password" : "password"}
                     />
+                    {registering && (
+                        <Text style={styles.passwordHint}>
+                            Minimal 8 karakter, serta mengandung huruf dan angka.
+                        </Text>
+                    )}
 
                     {!!error && (
                         <View accessibilityRole="alert" style={styles.errorBox}>
@@ -191,6 +207,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         height: 52,
         fontSize: 15
+    },
+    passwordHint: {
+        color: colors.muted,
+        fontSize: 12,
+        lineHeight: 17,
+        marginTop: -9,
+        marginBottom: 17
     },
     errorBox: {
         borderRadius: 10,
