@@ -109,7 +109,7 @@ test("tanpa header Authorization -> AUTH_TOKEN_MISSING", async () => {
     await expectUnauthorized(
         undefined,
         "AUTH_TOKEN_MISSING",
-        "Authentication required"
+        "Silakan masuk terlebih dahulu"
     );
 });
 
@@ -119,7 +119,7 @@ test("format header salah -> AUTH_TOKEN_MISSING", async (t) => {
             await expectUnauthorized(
                 header,
                 "AUTH_TOKEN_MISSING",
-                "Authentication required"
+                "Silakan masuk terlebih dahulu"
             );
         });
     }
@@ -135,7 +135,7 @@ test("signature salah -> AUTH_TOKEN_INVALID", async () => {
     await expectUnauthorized(
         `Bearer ${token}`,
         "AUTH_TOKEN_INVALID",
-        "Invalid token"
+        "Token login tidak valid"
     );
 });
 
@@ -143,7 +143,7 @@ test("token malformed -> AUTH_TOKEN_INVALID", async () => {
     await expectUnauthorized(
         "Bearer abc.def.ghi",
         "AUTH_TOKEN_INVALID",
-        "Invalid token"
+        "Token login tidak valid"
     );
 });
 
@@ -153,7 +153,7 @@ test("token kedaluwarsa -> AUTH_TOKEN_EXPIRED", async () => {
     await expectUnauthorized(
         `Bearer ${token}`,
         "AUTH_TOKEN_EXPIRED",
-        "Token has expired, please log in again"
+        "Sesi login telah berakhir, silakan masuk kembali"
     );
 });
 
@@ -179,7 +179,7 @@ test("algoritma none dan HS512 ditolak", async (t) => {
             await expectUnauthorized(
                 `Bearer ${token}`,
                 "AUTH_TOKEN_INVALID",
-                "Invalid token"
+                "Token login tidak valid"
             );
         });
     }
@@ -191,7 +191,7 @@ test("payload tanpa userId ditolak tanpa query database", async () => {
     await expectUnauthorized(
         `Bearer ${token}`,
         "AUTH_TOKEN_INVALID",
-        "Invalid token"
+        "Token login tidak valid"
     );
 
     assert.equal(findUserByIdCalls, 0);
@@ -203,7 +203,7 @@ test('payload userId "abc" ditolak tanpa query database', async () => {
     await expectUnauthorized(
         `Bearer ${token}`,
         "AUTH_TOKEN_INVALID",
-        "Invalid token"
+        "Token login tidak valid"
     );
 
     assert.equal(findUserByIdCalls, 0);
@@ -217,7 +217,7 @@ test("user tidak ditemukan -> AUTH_USER_NOT_FOUND", async () => {
     await expectUnauthorized(
         `Bearer ${token}`,
         "AUTH_USER_NOT_FOUND",
-        "User associated with token was not found"
+        "Pengguna untuk token ini tidak ditemukan"
     );
 
     assert.equal(findUserByIdCalls, 1);
@@ -277,7 +277,7 @@ test("authorize dengan role tidak sesuai -> 403", () => {
     assert.equal(res.statusCode, 403);
     assert.deepEqual(res.body, {
         success: false,
-        message: "You do not have permission to access this resource"
+        message: "Anda tidak memiliki izin untuk mengakses sumber daya ini"
     });
     assert.equal(nextCalls.length, 0);
 });

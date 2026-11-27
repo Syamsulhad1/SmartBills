@@ -8,7 +8,7 @@ const parseCategoryType = (value) => {
 
     const type = typeof value === "string" ? value.trim().toUpperCase() : "";
     if (!["INCOME", "EXPENSE"].includes(type)) {
-        const error = new Error("type must be INCOME or EXPENSE");
+        const error = new Error("type harus INCOME atau EXPENSE");
         error.statusCode = 400;
         throw error;
     }

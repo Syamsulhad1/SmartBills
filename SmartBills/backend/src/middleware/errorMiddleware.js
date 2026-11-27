@@ -37,8 +37,8 @@ const errorMiddleware = (err, req, res, next) => {
     }
 
     const message = statusCode >= 500
-        ? "Internal server error"
-        : err.message || "Request failed";
+        ? "Terjadi kesalahan pada server"
+        : err.message || "Permintaan gagal";
 
     const details = {};
     if (err.details) {

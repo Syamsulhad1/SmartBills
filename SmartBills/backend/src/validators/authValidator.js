@@ -2,23 +2,23 @@ const validateRegisterInput = ({ name, email, password }) => {
     const errors = [];
 
     if (!name || typeof name !== "string" || name.trim().length < 2) {
-        errors.push("Name must contain at least 2 characters");
+        errors.push("Nama minimal 2 karakter");
     }
 
     if (!email || typeof email !== "string") {
-        errors.push("Email is required");
+        errors.push("Email wajib diisi");
     } else {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!emailRegex.test(email)) {
-            errors.push("Invalid email format");
+            errors.push("Format email tidak valid");
         }
     }
 
     if (!password || typeof password !== "string") {
-        errors.push("Password is required");
+        errors.push("Password wajib diisi");
     } else if (password.length < 8) {
-        errors.push("Password must contain at least 8 characters");
+        errors.push("Password minimal 8 karakter");
     }
 
     return errors;
@@ -28,17 +28,17 @@ const validateLoginInput = ({ email, password }) => {
     const errors = [];
 
     if (!email || typeof email !== "string") {
-        errors.push("Email is required");
+        errors.push("Email wajib diisi");
     } else {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!emailRegex.test(email)) {
-            errors.push("Invalid email format");
+            errors.push("Format email tidak valid");
         }
     }
 
     if (!password || typeof password !== "string") {
-        errors.push("Password is required");
+        errors.push("Password wajib diisi");
     }
 
     return errors;

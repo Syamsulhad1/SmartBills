@@ -2,11 +2,11 @@ const validateInitialBalanceInput = (body) => {
     const errors = [];
 
     if (!body || typeof body !== "object" || Array.isArray(body)) {
-        return [{ field: "body", message: "Request body must be an object" }];
+        return [{ field: "body", message: "Data yang dikirim harus berupa objek" }];
     }
 
     if (!Object.prototype.hasOwnProperty.call(body, "amount")) {
-        return [{ field: "amount", message: "Amount is required" }];
+        return [{ field: "amount", message: "Nominal wajib diisi" }];
     }
 
     const amount = body.amount;
@@ -14,22 +14,22 @@ const validateInitialBalanceInput = (body) => {
 
     if (typeof amount === "number") {
         if (!Number.isFinite(amount)) {
-            return [{ field: "amount", message: "Amount must be a finite number" }];
+            return [{ field: "amount", message: "Nominal harus berupa angka yang valid" }];
         }
 
         if (amount < 0) {
-            return [{ field: "amount", message: "Amount cannot be negative" }];
+            return [{ field: "amount", message: "Nominal tidak boleh negatif" }];
         }
 
         // Hindari notasi eksponen dan jumlah desimal lebih dari dua digit.
         const asString = String(amount);
 
         if (/e/i.test(asString)) {
-            return [{ field: "amount", message: "Scientific notation is not allowed" }];
+            return [{ field: "amount", message: "Notasi ilmiah tidak diizinkan" }];
         }
 
         if (!/^\d+(\.\d{1,2})?$/.test(asString)) {
-            return [{ field: "amount", message: "Amount must have at most 2 decimal places" }];
+            return [{ field: "amount", message: "Nominal maksimal 2 angka desimal" }];
         }
 
         normalized = asString;
@@ -37,7 +37,7 @@ const validateInitialBalanceInput = (body) => {
         if (!/^\d+(\.\d{1,2})?$/.test(amount)) {
             return [{
                 field: "amount",
-                message: "Amount must be a non-negative decimal with at most 2 decimal places"
+                message: "Nominal harus berupa angka non-negatif dengan maksimal 2 angka desimal"
             }];
         }
 
@@ -45,7 +45,7 @@ const validateInitialBalanceInput = (body) => {
     } else {
         return [{
             field: "amount",
-            message: "Amount must be a finite number or decimal string"
+            message: "Nominal harus berupa angka atau teks desimal yang valid"
         }];
     }
 
@@ -54,7 +54,7 @@ const validateInitialBalanceInput = (body) => {
     if (integerPart.length > 13) {
         return [{
             field: "amount",
-            message: "Amount cannot exceed 13 integer digits"
+            message: "Nominal maksimal 13 digit angka di depan koma"
         }];
     }
 

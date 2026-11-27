@@ -49,7 +49,7 @@ test("category type filter accepts supported values case-insensitively", () => {
     assert.equal(parseCategoryType(" INCOME "), "INCOME");
     assert.throws(() => parseCategoryType("TRANSFER"), {
         statusCode: 400,
-        message: "type must be INCOME or EXPENSE"
+        message: "type harus INCOME atau EXPENSE"
     });
 });
 
@@ -68,7 +68,7 @@ test("error middleware hides internal errors and preserves client errors", () =>
             () => {}
         );
         assert.equal(res.statusCode, 500);
-        assert.equal(res.body.message, "Internal server error");
+        assert.equal(res.body.message, "Terjadi kesalahan pada server");
         assert.equal(res.body.message.includes("database password"), false);
 
         const clientErrorResponse = createResponse();
@@ -111,7 +111,7 @@ test("AI provider errors expose only bounded diagnostic codes", () => {
         assert.equal(res.statusCode, 502);
         assert.deepEqual(res.body, {
             success: false,
-            message: "Internal server error",
+            message: "Terjadi kesalahan pada server",
             code: "AI_PROVIDER_FAILED",
             providerStatus: 429,
             providerCode: "RESOURCE_EXHAUSTED"

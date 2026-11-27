@@ -41,7 +41,7 @@ const validateReceiptBuffer = (buffer, mimeType) => {
     };
 
     if (!signatureChecks[mimeType] || !signatureChecks[mimeType]()) {
-        const error = new Error("Receipt must be a valid JPEG, PNG, or WebP image");
+        const error = new Error("Bukti harus berupa gambar JPEG, PNG, atau WebP yang valid");
         error.statusCode = 400;
         throw error;
     }

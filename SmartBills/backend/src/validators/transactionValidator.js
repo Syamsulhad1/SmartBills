@@ -9,7 +9,7 @@ const parseAmount = (value, fieldName, { required = true } = {}) => {
         || !/^\d{1,13}(?:\.\d{1,2})?$/.test(String(value))
     ) {
         const error = new Error(
-            `${fieldName} must be a positive amount with up to 2 decimal places`
+            `${fieldName} harus berupa nominal positif dengan maksimal 2 angka desimal`
         );
         error.statusCode = 400;
         throw error;
@@ -18,7 +18,7 @@ const parseAmount = (value, fieldName, { required = true } = {}) => {
     const amount = Number(value);
 
     if (!Number.isFinite(amount) || (required && amount <= 0)) {
-        const error = new Error(`${fieldName} must be a positive amount`);
+        const error = new Error(`${fieldName} harus berupa nominal positif`);
         error.statusCode = 400;
         throw error;
     }
@@ -37,14 +37,14 @@ const parseItems = (value) => {
         try {
             items = JSON.parse(value);
         } catch {
-            const error = new Error("items must contain valid JSON");
+            const error = new Error("items harus berisi JSON yang valid");
             error.statusCode = 400;
             throw error;
         }
     }
 
     if (!Array.isArray(items)) {
-        const error = new Error("items must be an array");
+        const error = new Error("items harus berupa array");
         error.statusCode = 400;
         throw error;
     }
@@ -77,7 +77,7 @@ const parseItems = (value) => {
             || totalPrice === null
         ) {
             const error = new Error(
-                `items[${index}] must have a name, positive quantity, and total price`
+                `items[${index}] harus memiliki nama, jumlah positif, dan total harga`
             );
             error.statusCode = 400;
             throw error;
@@ -98,14 +98,17 @@ const validateCreateTransaction = (body, expectedType = null) => {
         : "";
 
     if (!["INCOME", "EXPENSE"].includes(type)) {
-        const error = new Error("type must be INCOME or EXPENSE");
+        const error = new Error("type harus INCOME atau EXPENSE");
         error.statusCode = 400;
         throw error;
     }
 
     if (expectedType && type !== expectedType) {
+        const expectedLabel = expectedType === "INCOME"
+            ? "pemasukan"
+            : "pengeluaran";
         const error = new Error(
-            `This endpoint only accepts ${expectedType.toLowerCase()} transactions`
+            `Endpoint ini hanya menerima transaksi ${expectedLabel}`
         );
         error.statusCode = 400;
         throw error;
@@ -125,7 +128,7 @@ const validateCreateTransaction = (body, expectedType = null) => {
         categoryId !== null
         && (!Number.isSafeInteger(categoryId) || categoryId <= 0)
     ) {
-        const error = new Error("categoryId must be a positive integer");
+        const error = new Error("categoryId harus berupa bilangan bulat positif");
         error.statusCode = 400;
         throw error;
     }
@@ -137,13 +140,13 @@ const validateCreateTransaction = (body, expectedType = null) => {
         merchantName !== null
         && (typeof merchantName !== "string" || merchantName.length > 100)
     ) {
-        const error = new Error("merchantName must be at most 100 characters");
+        const error = new Error("merchantName maksimal 100 karakter");
         error.statusCode = 400;
         throw error;
     }
 
     if (notes !== null && typeof notes !== "string") {
-        const error = new Error("notes must be text");
+        const error = new Error("notes harus berupa teks");
         error.statusCode = 400;
         throw error;
     }
@@ -152,7 +155,7 @@ const validateCreateTransaction = (body, expectedType = null) => {
     const transactionDate = dateValue ? new Date(dateValue) : new Date();
 
     if (Number.isNaN(transactionDate.getTime())) {
-        const error = new Error("transactionDate must be a valid date");
+        const error = new Error("transactionDate harus berupa tanggal yang valid");
         error.statusCode = 400;
         throw error;
     }
@@ -173,13 +176,13 @@ const parsePagination = (query) => {
     const offset = query.offset === undefined ? 0 : Number(query.offset);
 
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
-        const error = new Error("limit must be an integer between 1 and 100");
+        const error = new Error("limit harus berupa bilangan bulat antara 1 dan 100");
         error.statusCode = 400;
         throw error;
     }
 
     if (!Number.isInteger(offset) || offset < 0) {
-        const error = new Error("offset must be a non-negative integer");
+        const error = new Error("offset harus berupa bilangan bulat non-negatif");
         error.statusCode = 400;
         throw error;
     }
@@ -194,7 +197,7 @@ const parseTransactionId = (value) => {
         || !/^[1-9]\d*$/.test(value)
     ) {
         const error = new Error(
-            "transactionId must be a positive integer"
+            "transactionId harus berupa bilangan bulat positif"
         );
         error.statusCode = 400;
         throw error;
@@ -204,7 +207,7 @@ const parseTransactionId = (value) => {
 
     if (!Number.isSafeInteger(transactionId)) {
         const error = new Error(
-            "transactionId must be a positive safe integer"
+            "transactionId harus berupa bilangan bulat positif yang valid"
         );
         error.statusCode = 400;
         throw error;

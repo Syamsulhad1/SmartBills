@@ -5,7 +5,7 @@ const { failure, success } = require("../utils/response");
 
 const recognizeReceiptText = async (req, res) => {
     if (!req.file) {
-        return failure(res, "Receipt image is required", 400, {
+        return failure(res, "Gambar bukti wajib diunggah", 400, {
             code: "OCR_IMAGE_REQUIRED"
         });
     }

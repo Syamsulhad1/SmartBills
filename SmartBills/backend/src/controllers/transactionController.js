@@ -107,7 +107,7 @@ const createExpenseTransaction = (req, res) => (
 const getTransactionReceipt = async (req, res) => {
     const transactionId = Number(req.params.transactionId);
     if (!Number.isSafeInteger(transactionId) || transactionId <= 0) {
-        return failure(res, "transactionId must be a positive integer", 400);
+        return failure(res, "transactionId harus berupa bilangan bulat positif", 400);
     }
 
     const transaction = await findTransactionByIdForUser(
@@ -116,12 +116,12 @@ const getTransactionReceipt = async (req, res) => {
     );
 
     if (!transaction || !transaction.image_url) {
-        return failure(res, "Receipt not found", 404);
+        return failure(res, "Bukti transaksi tidak ditemukan", 404);
     }
 
     const receiptPath = getReceiptPath(transaction.image_url);
     if (!receiptPath) {
-        return failure(res, "Receipt not found", 404);
+        return failure(res, "Bukti transaksi tidak ditemukan", 404);
     }
 
     let buffer;
@@ -129,7 +129,7 @@ const getTransactionReceipt = async (req, res) => {
         buffer = await fs.promises.readFile(receiptPath);
     } catch (error) {
         if (error.code === "ENOENT") {
-            return failure(res, "Receipt file is missing", 404);
+            return failure(res, "File bukti transaksi tidak ditemukan di server", 404);
         }
 
         throw error;
@@ -152,7 +152,7 @@ const getTransactionReceipt = async (req, res) => {
 const getTransactionDetails = async (req, res) => {
     const transactionId = Number(req.params.transactionId);
     if (!Number.isSafeInteger(transactionId) || transactionId <= 0) {
-        return failure(res, "transactionId must be a positive integer", 400);
+        return failure(res, "transactionId harus berupa bilangan bulat positif", 400);
     }
 
     const transaction = await findTransactionByIdForUser(
@@ -161,7 +161,7 @@ const getTransactionDetails = async (req, res) => {
     );
 
     if (!transaction) {
-        return failure(res, "Transaction not found", 404);
+        return failure(res, "Transaksi tidak ditemukan", 404);
     }
 
     const items = await findItemsByTransactionId(transactionId);

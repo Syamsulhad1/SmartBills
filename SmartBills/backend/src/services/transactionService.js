@@ -55,7 +55,7 @@ const validateCategory = async (categoryId, type, client) => {
 
     const category = await findCategoryById(categoryId, client);
     if (!category || category.type !== type) {
-        throw createError("Category does not match transaction type", 400);
+        throw createError("Kategori tidak sesuai dengan jenis transaksi", 400);
     }
 };
 
@@ -69,7 +69,7 @@ const updateBalance = async (client, userId, delta) => {
     `, [userId, centsToAmount(delta)]);
 
     if (!result.rows[0]) {
-        throw createError("Transaction would make current balance negative", 400);
+        throw createError("Saldo tidak mencukupi untuk transaksi ini", 400);
     }
 
     return result.rows[0].current_balance;
@@ -119,7 +119,7 @@ const updateTransactionWithItems = async ({
         const current = currentResult.rows[0];
 
         if (!current) {
-            throw createError("Transaction not found", 404);
+            throw createError("Transaksi tidak ditemukan", 404);
         }
 
         await validateCategory(input.categoryId, input.type, client);
@@ -156,7 +156,7 @@ const deleteTransaction = async ({ transactionId, userId }) => {
         const current = currentResult.rows[0];
 
         if (!current) {
-            throw createError("Transaction not found", 404);
+            throw createError("Transaksi tidak ditemukan", 404);
         }
 
         const transaction = await deleteTransactionForUser(

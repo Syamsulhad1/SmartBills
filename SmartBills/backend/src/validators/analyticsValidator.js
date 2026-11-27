@@ -8,7 +8,7 @@ const parseAnalyticsPeriod = (value) => {
     const period = value === undefined ? "monthly" : String(value).toLowerCase();
 
     if (!Object.hasOwn(analyticsPeriods, period)) {
-        const error = new Error("period must be daily, weekly, or monthly");
+        const error = new Error("period harus daily, weekly, atau monthly");
         error.statusCode = 400;
         throw error;
     }
@@ -21,13 +21,13 @@ const parseReceiptPagination = (query) => {
     const offset = query.offset === undefined ? 0 : Number(query.offset);
 
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
-        const error = new Error("limit must be an integer between 1 and 100");
+        const error = new Error("limit harus berupa bilangan bulat antara 1 dan 100");
         error.statusCode = 400;
         throw error;
     }
 
     if (!Number.isInteger(offset) || offset < 0) {
-        const error = new Error("offset must be a non-negative integer");
+        const error = new Error("offset harus berupa bilangan bulat non-negatif");
         error.statusCode = 400;
         throw error;
     }

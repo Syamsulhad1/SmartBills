@@ -38,7 +38,7 @@ const getAnalyticsOverview = async (userId, period) => {
 		`, [userId]);
 
 		if (!userResult.rows[0]) {
-			throw createError("User not found", 404);
+			throw createError("Pengguna tidak ditemukan", 404);
 		}
 
 		const totalsResult = await client.query(`

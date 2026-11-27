@@ -25,7 +25,7 @@ const protect = async (req, res, next) => {
     if (!match) {
         return unauthorized(
             res,
-            "Authentication required",
+            "Silakan masuk terlebih dahulu",
             "AUTH_TOKEN_MISSING"
         );
     }
@@ -40,7 +40,7 @@ const protect = async (req, res, next) => {
         if (error instanceof jwt.TokenExpiredError) {
             return unauthorized(
                 res,
-                "Token has expired, please log in again",
+                "Sesi login telah berakhir, silakan masuk kembali",
                 "AUTH_TOKEN_EXPIRED"
             );
         }
@@ -48,7 +48,7 @@ const protect = async (req, res, next) => {
         if (error instanceof jwt.JsonWebTokenError) {
             return unauthorized(
                 res,
-                "Invalid token",
+                "Token login tidak valid",
                 "AUTH_TOKEN_INVALID"
             );
         }
@@ -61,7 +61,7 @@ const protect = async (req, res, next) => {
         || payload === null
         || Array.isArray(payload)
     ) {
-        return unauthorized(res, "Invalid token", "AUTH_TOKEN_INVALID");
+        return unauthorized(res, "Token login tidak valid", "AUTH_TOKEN_INVALID");
     }
 
     const userId = payload.userId;
@@ -78,7 +78,7 @@ const protect = async (req, res, next) => {
         && Number(userId) <= 2147483647;
 
     if (!validNumber && !validString) {
-        return unauthorized(res, "Invalid token", "AUTH_TOKEN_INVALID");
+        return unauthorized(res, "Token login tidak valid", "AUTH_TOKEN_INVALID");
     }
 
     let user;
@@ -92,7 +92,7 @@ const protect = async (req, res, next) => {
     if (!user) {
         return unauthorized(
             res,
-            "User associated with token was not found",
+            "Pengguna untuk token ini tidak ditemukan",
             "AUTH_USER_NOT_FOUND"
         );
     }
@@ -105,7 +105,7 @@ const authorize = (...roles) => (req, res, next) => {
     if (!req.user) {
         return unauthorized(
             res,
-            "Authentication required",
+            "Silakan masuk terlebih dahulu",
             "AUTH_TOKEN_MISSING"
         );
     }
@@ -113,7 +113,7 @@ const authorize = (...roles) => (req, res, next) => {
     if (!roles.includes(req.user.role)) {
         return failure(
             res,
-            "You do not have permission to access this resource",
+            "Anda tidak memiliki izin untuk mengakses sumber daya ini",
             403
         );
     }

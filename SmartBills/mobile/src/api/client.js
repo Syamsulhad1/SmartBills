@@ -16,7 +16,10 @@ const parseResponse = async (response) => {
 
     if (!response.ok || payload?.success === false) {
         const validationErrors = Array.isArray(payload?.errors)
-            ? payload.errors.join(", ")
+            ? payload.errors
+                .map((item) => (typeof item === "string" ? item : item?.message))
+                .filter(Boolean)
+                .join(", ")
             : null;
         const error = new Error(
             validationErrors || payload?.message || `Permintaan gagal (${response.status}).`

@@ -18,19 +18,23 @@ const request = async (path, { token, ...options } = {}) => {
 
     if (!response.ok || payload?.success === false) {
         const validation = payload?.errors;
+        const validationMessage = Array.isArray(validation)
+            ? validation
+                .map((item) => (typeof item === "string" ? item : item?.message))
+                .filter(Boolean)
+                .join(", ")
+            : null;
         const diagnostics = [
             payload?.code,
             payload?.providerStatus
                 ? `Gemini ${payload.providerStatus}${payload.providerCode ? ` ${payload.providerCode}` : ""}`
                 : null
         ].filter(Boolean);
-        let message = payload?.message || `Request failed (${response.status})`;
+        let message = payload?.message || `Permintaan gagal (${response.status}).`;
         if (diagnostics.length) {
             message += ` (${diagnostics.join("; ")})`;
         }
-        const error = new Error(
-            Array.isArray(validation) ? validation.join(", ") : message
-        );
+        const error = new Error(validationMessage || message);
         error.status = response.status;
         error.code = payload?.code;
         throw error;

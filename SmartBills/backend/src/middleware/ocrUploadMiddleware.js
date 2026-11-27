@@ -12,7 +12,7 @@ const upload = multer({
     fileFilter: (req, file, callback) => {
         if (!receiptExtensions[file.mimetype]) {
             const error = new Error(
-                "Receipt must be a JPEG, PNG, or WebP image no larger than 5 MB"
+                "Gambar harus berupa JPEG, PNG, atau WebP dengan ukuran maksimal 5 MB"
             );
             error.statusCode = 400;
             return callback(error);
@@ -27,7 +27,13 @@ const uploadOcrImage = (req, res, next) => {
             return next();
         }
         if (error instanceof multer.MulterError) {
-            error.statusCode = error.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+            if (error.code === "LIMIT_FILE_SIZE") {
+                error.statusCode = 413;
+                error.message = "Ukuran gambar melebihi batas 5 MB";
+            } else {
+                error.statusCode = 400;
+                error.message = "Upload gambar tidak valid";
+            }
         }
         return next(error);
     });

@@ -26,7 +26,7 @@ const register = async (req, res, next) => {
         });
 
         if (errors.length > 0) {
-            return failure(res, "Validation failed", 400, { errors });
+            return failure(res, "Validasi gagal", 400, { errors });
         }
 
         // Register user
@@ -57,7 +57,7 @@ const login = async (req, res, next) => {
         });
 
         if (errors.length > 0) {
-            return failure(res, "Validation failed", 400, { errors });
+            return failure(res, "Validasi gagal", 400, { errors });
         }
 
         const authData = await loginUser({

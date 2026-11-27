@@ -24,13 +24,13 @@ const recognizeReceipt = async (
     } = {}
 ) => {
     if (!Buffer.isBuffer(imageBuffer) || imageBuffer.length === 0) {
-        throw createError("Receipt image is required", 400, "OCR_IMAGE_REQUIRED");
+        throw createError("Gambar bukti wajib diunggah", 400, "OCR_IMAGE_REQUIRED");
     }
 
     validateReceiptBuffer(imageBuffer, mimeType);
     if (imageBuffer.length > MAX_IMAGE_BYTES) {
         throw createError(
-            "Receipt image exceeds the 5 MB OCR limit",
+            "Ukuran gambar bukti melebihi batas OCR 5 MB",
             413,
             "OCR_IMAGE_TOO_LARGE"
         );
@@ -60,7 +60,7 @@ const recognizeReceipt = async (
         ).toString();
     } catch {
         throw createError(
-            "OCR service URL is missing or invalid",
+            "URL layanan OCR tidak valid atau belum dikonfigurasi",
             503,
             "OCR_NOT_CONFIGURED"
         );
@@ -68,7 +68,7 @@ const recognizeReceipt = async (
 
     if (typeof serviceToken !== "string" || serviceToken.length < 32) {
         throw createError(
-            "OCR service token is missing or too short",
+            "Token layanan OCR tidak valid atau belum dikonfigurasi",
             503,
             "OCR_NOT_CONFIGURED"
         );
@@ -90,10 +90,10 @@ const recognizeReceipt = async (
         });
     } catch (error) {
         if (error.name === "TimeoutError" || error.name === "AbortError") {
-            throw createError("OCR service request timed out", 504, "OCR_TIMEOUT");
+            throw createError("Permintaan ke layanan OCR melebihi batas waktu", 504, "OCR_TIMEOUT");
         }
         throw createError(
-            "Could not reach OCR service",
+            "Tidak dapat terhubung ke layanan OCR",
             502,
             "OCR_SERVICE_REQUEST_FAILED"
         );
@@ -101,24 +101,24 @@ const recognizeReceipt = async (
 
     if (response.status === 401 || response.status === 403) {
         throw createError(
-            "OCR service authentication failed",
+            "Autentikasi layanan OCR gagal",
             503,
             "OCR_SERVICE_AUTH_FAILED"
         );
     }
     if (response.status === 429) {
-        throw createError("OCR service is busy", 503, "OCR_SERVICE_BUSY");
+        throw createError("Layanan OCR sedang sibuk", 503, "OCR_SERVICE_BUSY");
     }
     if (response.status === 422) {
         throw createError(
-            "No readable text was found in the receipt image",
+            "Tidak ada teks yang dapat dibaca pada gambar bukti",
             422,
             "OCR_NO_TEXT"
         );
     }
     if (!response.ok) {
         throw createError(
-            "OCR service failed to process the receipt",
+            "Layanan OCR gagal memproses gambar bukti",
             502,
             "OCR_SERVICE_FAILED"
         );
@@ -129,7 +129,7 @@ const recognizeReceipt = async (
         result = await response.json();
     } catch {
         throw createError(
-            "OCR service returned an invalid response",
+            "Layanan OCR mengirim respons yang tidak valid",
             502,
             "OCR_SERVICE_INVALID_RESPONSE"
         );
@@ -137,7 +137,7 @@ const recognizeReceipt = async (
 
     if (typeof result?.text !== "string" || !result.text.trim()) {
         throw createError(
-            "No readable text was found in the receipt image",
+            "Tidak ada teks yang dapat dibaca pada gambar bukti",
             422,
             "OCR_NO_TEXT"
         );

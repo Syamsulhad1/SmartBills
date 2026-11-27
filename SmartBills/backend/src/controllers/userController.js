@@ -26,7 +26,7 @@ const getMyProfile = async (req, res, next) => {
         if (!user) {
             return failure(
                 res,
-                "User associated with token was not found",
+                "Pengguna untuk token ini tidak ditemukan",
                 401,
                 {
                     code: "AUTH_USER_NOT_FOUND"
@@ -57,7 +57,7 @@ const postInitialBalance = async (req, res, next) => {
         if (errors.length > 0) {
             return res.status(400).json({
                 success: false,
-                message: "Validation failed",
+                message: "Validasi gagal",
                 errors
             });
         }
@@ -73,7 +73,7 @@ const postInitialBalance = async (req, res, next) => {
         if (!user) {
             return failure(
                 res,
-                "Initial balance has already been set",
+                "Saldo awal sudah pernah ditetapkan",
                 409,
                 {
                     code: "INITIAL_BALANCE_ALREADY_SET"

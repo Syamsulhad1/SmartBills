@@ -48,7 +48,7 @@ const registerUser = async ({ name, email, password }) => {
     const existingUser = await findUserByEmail(normalizedEmail);
 
     if (existingUser) {
-        const error = new Error("Email is already registered");
+        const error = new Error("Email sudah terdaftar");
         error.statusCode = 409;
         throw error;
     }
@@ -76,7 +76,7 @@ const loginUser = async ({ email, password }) => {
     const user = await findUserByEmail(normalizedEmail);
 
     if (!user) {
-        const error = new Error("Invalid email or password");
+        const error = new Error("Email atau password salah");
         error.statusCode = 401;
         throw error;
     }
@@ -87,7 +87,7 @@ const loginUser = async ({ email, password }) => {
     );
 
     if (!isPasswordValid) {
-        const error = new Error("Invalid email or password");
+        const error = new Error("Email atau password salah");
         error.statusCode = 401;
         throw error;
     }

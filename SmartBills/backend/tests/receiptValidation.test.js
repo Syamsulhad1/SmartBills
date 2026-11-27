@@ -57,7 +57,7 @@ test("validates transaction fields and calculates item totals", () => {
         ),
         {
             statusCode: 400,
-            message: "This endpoint only accepts income transactions"
+            message: "Endpoint ini hanya menerima transaksi pemasukan"
         }
     );
     assert.equal(

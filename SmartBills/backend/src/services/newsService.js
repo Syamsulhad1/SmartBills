@@ -137,7 +137,7 @@ const loadDashboardNews = async (fetchImpl, now) => {
     });
 
     if (news.unavailable.length === feeds.length) {
-        const error = new Error("News providers are unavailable");
+        const error = new Error("Sumber berita sedang tidak tersedia");
         error.statusCode = 502;
         error.code = "NEWS_PROVIDER_FAILED";
         throw error;

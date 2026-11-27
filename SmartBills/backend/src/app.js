@@ -68,7 +68,7 @@ app.get("/api/health/db", async (req, res) => {
                 stack: error.stack
             }
         });
-        return failure(res, "Database connection failed", 500);
+        return failure(res, "Koneksi database gagal", 500);
     }
 });
 

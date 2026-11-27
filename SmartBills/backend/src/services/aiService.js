@@ -186,7 +186,7 @@ const normalizeDraft = (result, categories, receiptText) => {
         || !Array.isArray(result.items)
     ) {
         throw createError(
-            "Gemini returned an incomplete response",
+            "Respons Gemini tidak lengkap",
             502,
             "AI_INVALID_RESPONSE"
         );
@@ -319,21 +319,21 @@ const parseReceiptText = async (
     } = {}
 ) => {
     if (typeof text !== "string" || !text.trim()) {
-        throw createError("OCR text is required", 400, "AI_TEXT_REQUIRED");
+        throw createError("Teks OCR wajib diisi", 400, "AI_TEXT_REQUIRED");
     }
     if (text.length > MAX_TEXT_LENGTH) {
-        throw createError("OCR text is too large", 413, "AI_TEXT_TOO_LARGE");
+        throw createError("Teks OCR terlalu panjang", 413, "AI_TEXT_TOO_LARGE");
     }
     if (!apiKey) {
         throw createError(
-            "Gemini API key is not configured",
+            "API key Gemini belum dikonfigurasi",
             503,
             "AI_NOT_CONFIGURED"
         );
     }
     if (!Array.isArray(categories) || categories.length === 0) {
         throw createError(
-            "Transaction categories are unavailable",
+            "Kategori transaksi tidak tersedia",
             503,
             "AI_CATEGORIES_UNAVAILABLE"
         );
@@ -343,7 +343,7 @@ const parseReceiptText = async (
         || !/^[a-zA-Z0-9._-]{1,100}$/.test(model)
     ) {
         throw createError(
-            "Gemini model configuration is invalid",
+            "Konfigurasi model Gemini tidak valid",
             503,
             "AI_NOT_CONFIGURED"
         );
@@ -396,10 +396,10 @@ const parseReceiptText = async (
         );
     } catch (error) {
         if (error.name === "TimeoutError" || error.name === "AbortError") {
-            throw createError("Gemini request timed out", 504, "AI_TIMEOUT");
+            throw createError("Permintaan ke Gemini melebihi batas waktu", 504, "AI_TIMEOUT");
         }
         throw createError(
-            "Could not reach Gemini",
+            "Tidak dapat terhubung ke Gemini",
             502,
             "AI_PROVIDER_REQUEST_FAILED"
         );
@@ -409,14 +409,14 @@ const parseReceiptText = async (
         const diagnostics = await getProviderDiagnostics(response);
         if (response.status === 401 || response.status === 403) {
             throw Object.assign(
-                createError("Gemini authentication failed", 503, "AI_AUTH_FAILED"),
+                createError("Autentikasi Gemini gagal", 503, "AI_AUTH_FAILED"),
                 diagnostics
             );
         }
         if (response.status === 429) {
             throw Object.assign(
                 createError(
-                    "Gemini rate limit or quota was reached",
+                    "Kuota atau batas permintaan Gemini tercapai",
                     503,
                     "AI_RATE_LIMITED"
                 ),
@@ -425,7 +425,7 @@ const parseReceiptText = async (
         }
         throw Object.assign(
             createError(
-                "Gemini failed to parse the transaction",
+                "Gemini gagal memproses transaksi",
                 502,
                 "AI_PROVIDER_FAILED"
             ),
@@ -438,7 +438,7 @@ const parseReceiptText = async (
         payload = await response.json();
     } catch {
         throw createError(
-            "Gemini returned an invalid response",
+            "Respons Gemini tidak valid",
             502,
             "AI_INVALID_RESPONSE"
         );
@@ -450,7 +450,7 @@ const parseReceiptText = async (
         .join("");
     if (!responseText) {
         throw createError(
-            "Gemini returned an empty response",
+            "Respons Gemini kosong",
             502,
             "AI_INVALID_RESPONSE"
         );
@@ -461,7 +461,7 @@ const parseReceiptText = async (
         parsed = JSON.parse(responseText);
     } catch {
         throw createError(
-            "Gemini returned invalid JSON",
+            "Gemini mengembalikan JSON yang tidak valid",
             502,
             "AI_INVALID_RESPONSE"
         );
