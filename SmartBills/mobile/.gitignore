@@ -2,3 +2,5 @@
 .expo/
 dist/
 node_modules/
+android/
+ios/

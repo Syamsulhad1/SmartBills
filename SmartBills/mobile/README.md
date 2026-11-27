@@ -38,6 +38,64 @@ Untuk Android Emulator, backend harus menerima koneksi dari emulator, bukan
 hanya terikat ke `localhost`. Periksa konfigurasi host backend dan firewall
 jika permintaan tidak tersambung.
 
+## Membangun APK Android
+
+`expo export --platform android` hanya menghasilkan bundle JavaScript, bukan APK
+yang dapat dipasang. Berkas APK harus dibuat dengan EAS Build (cloud) atau
+dengan Gradle lokal. Build APK tidak dijalankan di VPS: VPS hanya menjalankan
+backend dan web, sedangkan APK adalah berkas aplikasi yang dibangun sekali lalu
+dibagikan/dipasang di ponsel.
+
+### Opsi 1 — EAS Build (disarankan, tanpa Android Studio)
+
+1. Buat akun gratis di <https://expo.dev>.
+2. Masuk dari folder `mobile`:
+
+   ```bash
+   npx eas-cli login
+   npx eas-cli init
+   ```
+
+   `init` cukup sekali dan akan mengisi `extra.eas.projectId` pada `app.json`.
+3. Bangun APK yang bisa langsung dipasang:
+
+   ```bash
+   npm run build:android
+   ```
+
+   Profil `preview` pada `eas.json` memakai `buildType: apk` dan distribusi
+   internal, sehingga tautan unduhan APK muncul di akhir proses build.
+   Untuk berkas unggahan Play Store, gunakan `npm run build:android:production`
+   (AAB).
+
+### Opsi 2 — Build lokal dengan Gradle
+
+Membutuhkan JDK 17 dan Android SDK (misalnya lewat Android Studio), lalu:
+
+```bash
+npx expo prebuild --platform android
+cd android
+./gradlew assembleRelease
+```
+
+APK dihasilkan di `android/app/build/outputs/apk/release/app-release.apk`.
+Untuk rilis, siapkan keystore dan isi `android/gradle.properties` /
+`android/app/build.gradle` sesuai keystore tersebut. Folder `android/` adalah
+hasil generate dan tidak perlu di-commit.
+
+### Alamat API pada APK
+
+`EXPO_PUBLIC_API_URL` ditanam saat build, bukan dibaca saat aplikasi berjalan.
+Profil build di `eas.json` dan `.env.production` sudah menunjuk ke
+`https://smartbill.iet-polinela.my.id/api`, sehingga APK hasil build dapat
+dipakai di HP fisik dengan jaringan internet biasa (tidak lagi bergantung pada
+`10.0.2.2` yang hanya berlaku untuk emulator). Jika alamat API berubah, APK harus
+dibangun ulang. Untuk pengembangan lokal, `.env` tetap memakai alamat
+emulator/LAN.
+
+Naikkan `expo.android.versionCode` (dan `expo.version` bila perlu) setiap kali
+membangun APK baru agar pemasangan di atas versi lama tidak ditolak.
+
 ## Sesi dan komunikasi API
 
 - Login memakai `POST /api/auth/login`.
