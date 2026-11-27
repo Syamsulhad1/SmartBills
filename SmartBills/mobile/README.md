@@ -96,6 +96,22 @@ emulator/LAN.
 Naikkan `expo.android.versionCode` (dan `expo.version` bila perlu) setiap kali
 membangun APK baru agar pemasangan di atas versi lama tidak ditolak.
 
+### APK yang sudah dibangun
+
+| Item | Nilai |
+| --- | --- |
+| Versi | 1.0.0 (versionCode 1) |
+| Tanggal build | 27 November 2026 |
+| Profil | `preview` (APK, distribusi internal) |
+| Alamat API | `https://smartbill.iet-polinela.my.id/api` |
+| Unduhan | <https://expo.dev/artifacts/eas/3Bzer1xnhus4JKjAKgUYWCx10DXu9Jn2UEbdx-QBqPE.apk> |
+| Riwayat build | <https://expo.dev/accounts/sahrulssss/projects/smartbills/builds/3780931c-22e6-4ab5-a182-2b165d634641> |
+
+Berkas APK juga tersimpan lokal di `release/smartbills-1.0.0.apk` (tidak
+di-commit karena berukuran sekitar 70 MB). Package name: `com.smartbills.mobile`.
+APK meminta izin kamera dan internet saja; izin mikrofon dinonaktifkan karena
+aplikasi hanya memotret struk.
+
 ## Sesi dan komunikasi API
 
 - Login memakai `POST /api/auth/login`.
