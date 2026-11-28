@@ -59,13 +59,43 @@ const readBlobAsDataUri = (blob) => new Promise((resolve, reject) => {
     reader.readAsDataURL(blob);
 });
 
+const wait = (durationMs) => new Promise((resolve) => setTimeout(resolve, durationMs));
+
 export const createApi = ({
     baseUrl = API_BASE_URL,
     fetchImpl = fetch,
     timeoutMs = 15000,
-    ocrTimeoutMs = 90000
+    ocrTimeoutMs = 90000,
+    retries = 1,
+    retryDelayMs = 1500
 } = {}) => {
     const apiBaseUrl = baseUrl.replace(/\/$/, "");
+
+    const send = async (url, options, requestTimeoutMs) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(
+            () => controller.abort(),
+            requestTimeoutMs
+        );
+
+        try {
+            return await fetchImpl(url, {
+                ...options,
+                signal: controller.signal
+            });
+        } catch (cause) {
+            const error = new Error(controller.signal.aborted
+                ? `Server tidak merespons dalam ${Math.ceil(requestTimeoutMs / 1000)} detik. Periksa jaringan, alamat API, dan server backend.`
+                : "Tidak dapat terhubung ke server. Periksa jaringan dan alamat API.");
+            error.cause = cause;
+            // Network hiccups (timeout / lost connection) are worth one more try,
+            // especially on the very first request after the app is opened.
+            error.retryable = true;
+            throw error;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    };
 
     const request = async (path, {
         token,
@@ -82,29 +112,30 @@ export const createApi = ({
             headers["Content-Type"] = "application/json";
         }
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(
-            () => controller.abort(),
-            requestTimeoutMs
-        );
+        const options = {
+            method,
+            headers,
+            ...(body !== undefined
+                ? { body: multipart ? body : JSON.stringify(body) }
+                : {})
+        };
+        const url = `${apiBaseUrl}${path}`;
+        const maxAttempts = method === "GET" ? retries + 1 : 1;
         let response;
-        try {
-            response = await fetchImpl(`${apiBaseUrl}${path}`, {
-                method,
-                headers,
-                signal: controller.signal,
-                ...(body !== undefined
-                    ? { body: multipart ? body : JSON.stringify(body) }
-                    : {})
-            });
-        } catch (cause) {
-            const error = new Error(controller.signal.aborted
-                ? `Server tidak merespons dalam ${Math.ceil(requestTimeoutMs / 1000)} detik. Periksa jaringan, alamat API, dan server backend.`
-                : "Tidak dapat terhubung ke server. Periksa jaringan dan alamat API.");
-            error.cause = cause;
-            throw error;
-        } finally {
-            clearTimeout(timeoutId);
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+            if (attempt > 1) {
+                await wait(retryDelayMs * (attempt - 1));
+            }
+
+            try {
+                response = await send(url, options, requestTimeoutMs);
+                break;
+            } catch (error) {
+                if (!error.retryable || attempt === maxAttempts) {
+                    throw error;
+                }
+            }
         }
 
         return parseResponse(response);

@@ -321,6 +321,10 @@ export const DashboardScreen = () => {
                     ))}
                 </View>
 
+                {!loading && error && overview && (
+                    <Text style={styles.refreshError}>{error}</Text>
+                )}
+
                 {loading
                     ? (
                         <View style={styles.loading}>
@@ -328,7 +332,7 @@ export const DashboardScreen = () => {
                             <Text style={styles.emptyText}>Memuat ringkasan...</Text>
                         </View>
                     )
-                    : error
+                    : error && !overview
                         ? (
                             <View style={styles.errorCard}>
                                 <Text accessibilityRole="alert" style={styles.errorText}>
@@ -573,6 +577,11 @@ const styles = StyleSheet.create({
     categoryAmount: { color: "#14251D", fontWeight: "700", fontSize: 13 },
     errorCard: { backgroundColor: "#FEF3F2", padding: 16, borderRadius: 14 },
     errorText: { color: "#B42318", fontSize: 13, lineHeight: 19 },
+    refreshError: {
+        color: "#B85B45",
+        fontSize: 12,
+        lineHeight: 18
+    },
     retryButton: {
         alignSelf: "flex-start",
         backgroundColor: "#0D6B50",

@@ -398,6 +398,62 @@ test("network failures report that the backend could not be reached", async () =
     });
 });
 
+test("failed GET requests are retried once before reporting the error", async () => {
+    let attempts = 0;
+    const api = createApi({
+        baseUrl: "http://localhost:5000/api",
+        retryDelayMs: 1,
+        fetchImpl: async () => {
+            attempts += 1;
+            if (attempts === 1) {
+                throw new TypeError("fetch failed");
+            }
+            return Response.json({ success: true, data: { period: "monthly" } });
+        }
+    });
+
+    const result = await api.analytics("jwt-token", "monthly");
+
+    assert.equal(attempts, 2);
+    assert.equal(result.period, "monthly");
+});
+
+test("GET requests report the error after the retry also fails", async () => {
+    let attempts = 0;
+    const api = createApi({
+        baseUrl: "http://localhost:5000/api",
+        retryDelayMs: 1,
+        fetchImpl: async () => {
+            attempts += 1;
+            throw new TypeError("fetch failed");
+        }
+    });
+
+    await assert.rejects(
+        api.profile("jwt-token"),
+        /Tidak dapat terhubung ke server/
+    );
+    assert.equal(attempts, 2);
+});
+
+test("mutating requests are not retried", async () => {
+    let attempts = 0;
+    const api = createApi({
+        baseUrl: "http://localhost:5000/api",
+        retryDelayMs: 1,
+        fetchImpl: async () => {
+            attempts += 1;
+            throw new TypeError("fetch failed");
+        }
+    });
+
+    await assert.rejects(
+        api.setInitialBalance("jwt-token", "1500000"),
+        /Tidak dapat terhubung ke server/
+    );
+    assert.equal(attempts, 1);
+});
+
 test("requests that time out report that the backend did not respond", async () => {
     const api = createApi({
         baseUrl: "http://localhost:5000/api",
