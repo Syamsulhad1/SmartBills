@@ -101,16 +101,21 @@ membangun APK baru agar pemasangan di atas versi lama tidak ditolak.
 | Item | Nilai |
 | --- | --- |
 | Versi | 1.0.0 (versionCode 1) |
-| Tanggal build | 27 November 2026 |
+| Tanggal build | 28 November 2026 |
 | Profil | `preview` (APK, distribusi internal) |
 | Alamat API | `https://smartbill.iet-polinela.my.id/api` |
-| Unduhan | <https://expo.dev/artifacts/eas/3Bzer1xnhus4JKjAKgUYWCx10DXu9Jn2UEbdx-QBqPE.apk> |
-| Riwayat build | <https://expo.dev/accounts/sahrulssss/projects/smartbills/builds/3780931c-22e6-4ab5-a182-2b165d634641> |
+| Unduhan | <https://expo.dev/artifacts/eas/haujYxQliXQVGzO6QwrTmAmSZB7YIXgWey8rQl_Z754.apk> |
+| Riwayat build | <https://expo.dev/accounts/sahrulssss/projects/smartbills/builds/cf3ae5a3-56a7-419c-81b5-fef424465e53> |
 
 Berkas APK juga tersimpan lokal di `release/smartbills-1.0.0.apk` (tidak
 di-commit karena berukuran sekitar 70 MB). Package name: `com.smartbills.mobile`.
 APK meminta izin kamera dan internet saja; izin mikrofon dinonaktifkan karena
 aplikasi hanya memotret struk.
+
+Build 28 November 2026 sudah memuat perbaikan pemuatan dashboard: permintaan
+GET dicoba ulang sekali sebelum pesan error ditampilkan, sehingga gangguan
+jaringan sesaat saat aplikasi pertama dibuka tidak langsung memunculkan teks
+merah di halaman Home.
 
 ## Sesi dan komunikasi API
 
